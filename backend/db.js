@@ -6,16 +6,34 @@ const db = new sqlite3.Database(dbPath);
 
 // Create tables if not exists
 db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS Category (
-    category_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    category_name TEXT
+  db.run(`CREATE TABLE IF NOT EXISTS Majors (
+    majorID INTEGER PRIMARY KEY AUTOINCREMENT,
+    majorName TEXT
   )`);
-  db.run(`CREATE TABLE IF NOT EXISTS Product (
-    product_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_name TEXT,
-    price REAL,
-    category_id INTEGER,
-    FOREIGN KEY (category_id) REFERENCES Category(category_id)
+
+  db.run(`CREATE TABLE IF NOT EXISTS Rooms (
+    roomID INTEGER PRIMARY KEY AUTOINCREMENT,
+    buildingName TEXT,
+    roomNumber INTEGER
+  )`);
+  
+  db.run(`CREATE TABLE IF NOT EXISTS Roles (
+    roleID INTEGER PRIMARY KEY AUTOINCREMENT,
+    roleName TEXT,
+    admin INTEGER DEFAULT 0 CHECK(admin == 0 OR admin == 1)
+  )`);
+  
+  db.run(`CREATE TABLE IF NOT EXISTS Employees (
+    employeeID INTEGER PRIMARY KEY AUTOINCREMENT,
+    firstName TEXT,
+    lastName TEXT,
+    roleID INTEGER,
+    email TEXT,
+    password TEXT,
+    FOREIGN KEY (roleID) REFERENCES Roles(roleID)
+  )`);
+  
+  db.run(`UPDATE Employees SET roleID = 1 WHERE employeeID = 1;
   )`);
 });
 
