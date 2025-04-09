@@ -33,7 +33,45 @@ db.serialize(() => {
     FOREIGN KEY (roleID) REFERENCES Roles(roleID)
   )`);
   
-  db.run(`UPDATE Employees SET roleID = 1 WHERE employeeID = 1;
+  db.run(`UPDATE Employees SET roleID = 1 WHERE employeeID = 1;`);
+  
+  db.run(`CREATE TABLE IF NOT EXISTS Materials (
+    materialID INTEGER PRIMARY KEY AUTOINCREMENT,
+    materialName TEXT,
+    materialType INTEGER,
+    materialDescription TEXT,
+    maxPoints INTEGER,
+    materialFile BLOB,
+    FOREIGN KEY (materialType) REFERENCES Types(typeID)
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS Types (
+    typeID INTEGER PRIMARY KEY AUTOINCREMENT,
+    typeName TEXT,
+    typeDescription TEXT,
+    typeWeight INTEGER
+    Foreign Key (typeID) REFERENCES Materials(materialType)
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS Grades (
+    materialID INTEGER,
+    studentID INTEGER,
+    PRIMARY KEY (materialID, studentID),
+    FOREIGN KEY (materialID) REFERENCES Materials(materialID),
+    FOREIGN KEY (studentID) REFERENCES Students(studentID),
+    grade INTEGER,
+    file BLOB,
+    comments TEXT
+  )`);
+  
+  db.run(`CREATE TABLE IF NOT EXISTS MaterialSections (
+    materialID INTEGER,
+    sectionID INTEGER,
+    courseID INTEGER,
+    PRIMARY KEY (materialID, sectionID, courseID),
+    FOREIGN KEY (materialID) REFERENCES Materials(materialID),
+    FOREIGN KEY (sectionID) REFERENCES Sections(sectionID),
+    FOREIGN KEY (courseID) REFERENCES Sections(courseID)
   )`);
 });
 
