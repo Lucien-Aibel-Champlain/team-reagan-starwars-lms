@@ -49,7 +49,7 @@ db.serialize(() => {
     typeID INTEGER PRIMARY KEY AUTOINCREMENT,
     typeName TEXT,
     typeDescription TEXT,
-    typeWeight INTEGER
+    typeWeight INTEGER,
     Foreign Key (typeID) REFERENCES Materials(materialType)
   )`);
 
