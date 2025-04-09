@@ -34,7 +34,7 @@ db.serialize(() => {
   )`);
   
   db.run(`UPDATE Employees SET roleID = 1 WHERE employeeID = 1;`);
-  
+
   db.run(`CREATE TABLE IF NOT EXISTS Materials (
     materialID INTEGER PRIMARY KEY AUTOINCREMENT,
     materialName TEXT,
@@ -49,19 +49,19 @@ db.serialize(() => {
     typeID INTEGER PRIMARY KEY AUTOINCREMENT,
     typeName TEXT,
     typeDescription TEXT,
-    typeWeight INTEGER
+    typeWeight INTEGER,
     Foreign Key (typeID) REFERENCES Materials(materialType)
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS Grades (
     materialID INTEGER,
     studentID INTEGER,
-    PRIMARY KEY (materialID, studentID),
-    FOREIGN KEY (materialID) REFERENCES Materials(materialID),
-    FOREIGN KEY (studentID) REFERENCES Students(studentID),
     grade INTEGER,
     file BLOB,
-    comments TEXT
+    comments TEXT,
+    PRIMARY KEY (materialID, studentID),
+    FOREIGN KEY (materialID) REFERENCES Materials(materialID),
+    FOREIGN KEY (studentID) REFERENCES Students(studentID)
   )`);
   
   db.run(`CREATE TABLE IF NOT EXISTS MaterialSections (
@@ -73,6 +73,45 @@ db.serialize(() => {
     FOREIGN KEY (sectionID) REFERENCES Sections(sectionID),
     FOREIGN KEY (courseID) REFERENCES Sections(courseID)
   )`);
+  
+  db.run(`CREATE TABLE IF NOT EXISTS Students (
+    email TEXT,
+    firstName TEXT,
+    lastName TEXT,
+    graduationYear INTEGER,
+    majorID INTEGER,
+    studentID INTEGER PRIMARY KEY AUTOINCREMENT,
+    FOREIGN KEY (majorID) REFERENCES Majors(majorID)  
+  )`);
+  
+  db.run(`CREATE TABLE IF NOT EXISTS Courses (
+    coursePrefix TEXT,
+    courseNumber INTEGER,
+    courseName Text,
+    courseID INTEGER PRIMARY KEY AUTOINCREMENT
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS Sections(
+    startTime TEXT, -- how do we plan to store dates 
+    endTime TEXT,
+    weekDays TEXT,
+    startDate TEXT,
+    endDate TEXT,
+    employeeID INTEGER,
+    roomID INTEGER,
+    sectionID INTEGER PRIMARY KEY AUTOINCREMENT, -- do we want this to be a composite?
+    FOREIGN KEY (employeeID) REFERENCES Employees(employeeID),
+    FOREIGN KEY (roomID) REFERENCES Rooms(roomID)
+  )`);
+  
+  db.run(`CREATE TABLE IF NOT EXISTS StudentSections(
+    studentID INTEGER,
+    sectionID INTEGER,
+    FOREIGN KEY (studentID) REFERENCES Students(studentID),
+    FOREIGN KEY (sectionID) REFERENCES Sections(sectionID),
+    PRIMARY KEY (sectionID, StudentID)
+  )`);
+
 });
 
 module.exports = db;
