@@ -4,7 +4,9 @@ Download [wearhouse-template.zip](https://github.com/Lucien-Aibel-Champlain/team
 
 Unpack it
 
-Open `wearhouse/backend` in cmd, and run `npm install express cors sqlite3`
+Open `wearhouse/backend` in cmd, and run `npm init -y`
+
+Then, in the same window, `npm install express cors sqlite3`
 
 Copy `wearhouse/backend/node_modules` to the project backend folder
 
