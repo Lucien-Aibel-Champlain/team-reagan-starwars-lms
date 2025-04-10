@@ -73,7 +73,7 @@ export default function Dashboard({ isAdmin }) {
 
   return (
     <div>
-      <h2>Categories</h2>
+      <h2>tomo</h2>
       {isAdmin && (
         <Form
           type="category"
