@@ -84,7 +84,7 @@ export default function Dashboard({ isAdmin }) {
       <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
         <thead>
           <tr>
-            <th>Test Change</th>
+            <th>Category ID</th>
             <th>Category Name</th>
             {isAdmin && <th>Actions</th>}
           </tr>
