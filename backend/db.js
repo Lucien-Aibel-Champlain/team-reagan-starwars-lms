@@ -32,8 +32,6 @@ db.serialize(() => {
     password TEXT,
     FOREIGN KEY (roleID) REFERENCES Roles(roleID)
   )`);
-  
-  db.run(`UPDATE Employees SET roleID = 1 WHERE employeeID = 1;`);
 
   db.run(`CREATE TABLE IF NOT EXISTS Materials (
     materialID INTEGER PRIMARY KEY AUTOINCREMENT,
