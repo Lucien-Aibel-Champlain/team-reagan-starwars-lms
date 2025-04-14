@@ -1,154 +1,205 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Button } from 'react';
 import Form from './Form';
 
 export default function Dashboard({ isAdmin }) {
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState('');
-
-  const [editCategory, setEditCategory] = useState(null);
-  const [editProduct, setEditProduct] = useState(null);
+  const [sections, setSections] = useState([]);
+  const [majors, setMajors] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [materials, setMaterials] = useState([]);
 
   const fetchData = () => {
-    fetch('http://localhost:5000/categories')
+    fetch('http://localhost:5000/majors')
       .then(res => res.json())
-      .then(setCategories);
-    fetch('http://localhost:5000/products')
+      .then(setMajors);
+    fetch('http://localhost:5000/rooms')
       .then(res => res.json())
-      .then(setProducts);
+      .then(setRooms);
+    fetch('http://localhost:5000/sections')
+      .then(res => res.json())
+      .then(setSections);
+    fetch('http://localhost:5000/employees')
+      .then(res => res.json())
+      .then(setEmployees);
+    fetch('http://localhost:5000/roles')
+      .then(res => res.json())
+      .then(setRoles);
+    fetch('http://localhost:5000/materials')
+      .then(res => res.json())
+      .then(setMaterials);
   };
+
+  const downloadFile = (materialID) => {
+    fetch('http://localhost:5000/material/file/' + materialID)
+        .then(res => res.json())
+        .then(res => {let myBlob = new Blob([String.fromCharCode(...res[0].materialFile.data)])
+            let blobUrl = (URL.createObjectURL(myBlob))
+            let link = document.createElement("a")
+            link.href = blobUrl
+            link.download = "file.jpg"
+            link.click()
+            link.remove()
+        });
+  }
 
   useEffect(() => {
     fetchData();
   }, []);
-
-  const addOrUpdateCategory = async (data) => {
-    const method = editCategory ? 'PUT' : 'POST';
-    const url = editCategory
-      ? `http://localhost:5000/categories/${editCategory.category_id}`
-      : 'http://localhost:5000/categories';
-
-    await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    setEditCategory(null);
-    fetchData();
-  };
-
-  const addOrUpdateProduct = async (data) => {
-    const method = editProduct ? 'PUT' : 'POST';
-    const url = editProduct
-      ? `http://localhost:5000/products/${editProduct.product_id}`
-      : 'http://localhost:5000/products';
-
-    await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    setEditProduct(null);
-    fetchData();
-  };
-
-  const deleteCategory = async (id) => {
-    await fetch(`http://localhost:5000/categories/${id}`, { method: 'DELETE' });
-    fetchData();
-  };
-
-  const deleteProduct = async (id) => {
-    await fetch(`http://localhost:5000/products/${id}`, { method: 'DELETE' });
-    fetchData();
-  };
-
-  const getCategoryName = (category_id) => {
-    const cat = categories.find(c => c.category_id === category_id);
-    return cat ? cat.category_name : 'Unknown';
-  };
-
-  const filteredProducts = products.filter(p =>
-    p.product_name.toLowerCase().includes(search.toLowerCase())
-  );
+  
+  isAdmin = true
 
   return (
     <div>
-      <h2>Categories</h2>
-      {isAdmin && (
-        <Form
-          type="category"
-          onSubmit={addOrUpdateCategory}
-          initialData={editCategory || {}}
-        />
-      )}
+      <h2>Majors</h2>
       <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
         <thead>
           <tr>
-            <th>Category ID</th>
-            <th>Category Name</th>
-            {isAdmin && <th>Actions</th>}
+            <th>Name</th>
           </tr>
         </thead>
         <tbody>
-          {categories.map(cat => (
-            <tr key={cat.category_id}>
-              <td>{cat.category_id}</td>
-              <td>{cat.category_name}</td>
-              {isAdmin && (
-                <td>
-                  <button onClick={() => setEditCategory(cat)}>Edit</button>
-                  <button onClick={() => deleteCategory(cat.category_id)}>Delete</button>
-                </td>
-              )}
+          {majors.map(maj => (
+            <tr key={maj.majorID}>
+              <td>{maj.majorName}</td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      <h2>All Products</h2>
-      <input
-        placeholder="Search product name..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        style={{ marginBottom: '1em', padding: '4px', width: '300px' }}
-      />
-
-      {isAdmin && (
-        <Form
-          type="product"
-          onSubmit={addOrUpdateProduct}
-          initialData={editProduct || {}}
-          categories={categories}
-        />
-      )}
-
-      <table border="1" cellPadding="6" style={{ width: '50%' }}>
+      
+      <h2>Rooms</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
         <thead>
           <tr>
-            <th>Product ID</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Category ID</th>
-            {isAdmin && <th>Actions</th>}
+            <th>Building</th>
+            <th>Number</th>
           </tr>
         </thead>
         <tbody>
-          {filteredProducts.map(prod => (
-            <tr key={prod.product_id}>
-              <td>{prod.product_id}</td>
-              <td>{prod.product_name}</td>
-              <td>${prod.price}</td>
-              <td>{prod.category_id}</td>
-              {isAdmin && (
-                <td>
-                  <button onClick={() => setEditProduct(prod)}>Edit</button>
-                  <button onClick={() => deleteProduct(prod.product_id)}>Delete</button>
-                </td>
-              )}
+          {rooms.map(room => (
+            <tr key={room.roomID}>
+              <td>{room.buildingName}</td>
+              <td>{room.roomNumber}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      
+      {isAdmin && (
+      <div>
+      <h2>Employees</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Role</th>
+            <th>Email</th>
+            <th>Password</th>
+          </tr>
+        </thead>
+        <tbody>
+          {employees.map(emp => (
+            <tr key={emp.employeeID}>
+              <td>{emp.firstName}</td>
+              <td>{emp.lastName}</td>
+              <td>{emp.roleName}</td>
+              <td>{emp.email}</td>
+              <td>{emp.password}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      
+      <h2>Roles</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          {roles.map(role => (
+            <tr key={role.roleID}>
+              <td>{role.roleName}</td>
+              <td>{["No", "Yes"][role.adminBool]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+      )}
+      
+      <h2>Courselist</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Schedule</th>
+            <th>Dates</th>
+            <th>Room</th>
+            <th>Instructor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sections.map(sec => (
+            <tr key={sec.sectionID}>
+              <td>{sec.coursePrefix + "-" + sec.courseNumber + "-" + sec.sectionNumber}</td>
+              <td>{sec.courseName}</td>
+              <td>{sec.startTime + "-" + sec.endTime + " " + sec.weekDays}</td>
+              <td>{sec.startDate + " - " + sec.endDate}</td>
+              <td>{sec.buildingName + " " + sec.roomNumber}</td>
+              <td>{sec.lastName + ", " + sec.firstName}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      
+      <h2>Materials</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Points Worth</th>
+            <th>File</th>
+          </tr>
+        </thead>
+        <tbody>
+          {materials.map(mat => (
+            <tr key={mat.materialID}>
+              <td>{mat.materialName}</td>
+              <td>{mat.materialDescription}</td>
+              <td>{mat.typeName}</td>
+              <td>{mat.maxPoints}</td>
+              <td><button onClick={() => downloadFile(mat.materialID)}>Download</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      
+      <h2>Types</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Building</th>
+            <th>Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rooms.map(room => (
+            <tr key={room.roomID}>
+              <td>{room.buildingName}</td>
+              <td>{room.roomNumber}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      
+      <span>Worsevas for Sham-plain ("somehow, we imagined both as worse!"), created by Team Reagan. Copyright 2025.</span>
     </div>
   );
 }
