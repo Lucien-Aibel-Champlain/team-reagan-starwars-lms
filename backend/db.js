@@ -95,8 +95,8 @@ db.serialize(() => {
     startTime TEXT CHECK(time(startTime) IS startTime),
     endTime TEXT CHECK(time(endTime) IS endTime),
     weekDays TEXT,
-    startDate TEXT,
-    endDate TEXT,
+    startDate TEXT CHECK(date(startDate) IS startDate),
+    endDate TEXT CHECK(date(endDate) IS endDate),
     employeeID INTEGER,
     roomID INTEGER,
     courseID INTEGER,
@@ -107,8 +107,6 @@ db.serialize(() => {
     FOREIGN KEY (roomID) REFERENCES Rooms(roomID)
   )`);
   
-  //Time types
-  
   db.run(`CREATE TABLE IF NOT EXISTS StudentSections(
     studentID INTEGER,
     sectionID INTEGER,
@@ -117,6 +115,7 @@ db.serialize(() => {
     PRIMARY KEY (sectionID, studentID)
   )`);
   
+  /*
   db.run(`INSERT INTO Majors(majorName) VALUES
     ("Cheesemongering"),
     ("Cool Hats"),
@@ -215,7 +214,7 @@ db.serialize(() => {
     (5, 1),
     (5, 3),
     (5, 4)
-  `);
+  `);*/
 });
 
 module.exports = db;
