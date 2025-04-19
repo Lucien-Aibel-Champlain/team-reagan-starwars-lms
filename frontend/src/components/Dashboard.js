@@ -10,7 +10,7 @@ export default function Dashboard({ isAdmin }) {
   const [materials, setMaterials] = useState([]);
   const [types, setTypes] = useState([]);
   const [grades, setGrades] = useState([]);
-  const selectedCourse = 0;
+  let selectedSection = 0;
 
   const fetchData = () => {
     fetch('http://localhost:5000/majors')
@@ -34,15 +34,18 @@ export default function Dashboard({ isAdmin }) {
     fetch('http://localhost:5000/types')
       .then(res => res.json())
       .then(setTypes);
-    fetch('http://localhost:5000/grades')
-      .then(res => res.json())
-      .then(setGrades);
+    if (selectedSection != 0) {
+      fetch('http://localhost:5000/grades/section/' + selectedSection)
+        .then(res => res.json())
+        .then(setGrades);
+    }
   };
 
   const downloadFile = (materialID) => {
     fetch('http://localhost:5000/material/file/' + materialID)
         .then(res => res.json())
-        .then(res => {let myBlob = new Blob([String.fromCharCode(...res[0].materialFile.data)])
+        .then(res => {let myBlob = new Blob([new Uint8Array(res[0].materialFile.data)])
+            console.log(myBlob)
             let blobUrl = (URL.createObjectURL(myBlob))
             let link = document.createElement("a")
             link.href = blobUrl
@@ -170,6 +173,8 @@ export default function Dashboard({ isAdmin }) {
               <td>{sec.startDate + " - " + sec.endDate}</td>
               <td>{sec.buildingName + " " + sec.roomNumber}</td>
               <td>{sec.lastName + ", " + sec.firstName}</td>
+              <td><button onClick={() => {selectedSection = sec.sectionID;
+              fetchData()}}>Select</button></td>
             </tr>
           ))}
         </tbody>

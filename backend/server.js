@@ -47,17 +47,21 @@ app.get('/materials', (req, res) => {
 });
 
 app.get('/material/file/:id', (req, res) => {
-  if (req.params.id === parseInt(req.params.id))
-    console.log(req.params.id)
+  if (!isNaN(parseInt(req.params.id)))
+  {
     db.all('SELECT materialFile FROM Materials WHERE materialID = ' + req.params.id, [], (err, rows) => res.json(rows));
+  }
 });
 
 app.get('/types', (req, res) => {
   db.all('SELECT * FROM Types', [], (err, rows) => res.json(rows));
 });
 
-app.get('/grades', (req, res) => {
-  db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID', [], (err, rows) => res.json(rows));
+app.get('/grades/section/:id', (req, res) => {
+  if (!isNaN(parseInt(req.params.id)))
+  {
+    db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID LEFT JOIN MaterialSections ON Grades.materialID = MaterialSections.materialID WHERE MaterialSections.sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
+  }
 });
 
 app.listen(5000, () => console.log('Backend running on port 5000'));
