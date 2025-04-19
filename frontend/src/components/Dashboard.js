@@ -8,6 +8,9 @@ export default function Dashboard({ isAdmin }) {
   const [employees, setEmployees] = useState([]);
   const [roles, setRoles] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [grades, setGrades] = useState([]);
+  const selectedCourse = 0;
 
   const fetchData = () => {
     fetch('http://localhost:5000/majors')
@@ -28,6 +31,12 @@ export default function Dashboard({ isAdmin }) {
     fetch('http://localhost:5000/materials')
       .then(res => res.json())
       .then(setMaterials);
+    fetch('http://localhost:5000/types')
+      .then(res => res.json())
+      .then(setTypes);
+    fetch('http://localhost:5000/grades')
+      .then(res => res.json())
+      .then(setGrades);
   };
 
   const downloadFile = (materialID) => {
@@ -41,6 +50,15 @@ export default function Dashboard({ isAdmin }) {
             link.click()
             link.remove()
         });
+  }
+  
+  const gradePercent = (points, maxPoints) => {
+    if (maxPoints == 0) {
+        return 100
+    }
+    else {
+        return (points / maxPoints) * 100
+    }
   }
 
   useEffect(() => {
@@ -183,23 +201,41 @@ export default function Dashboard({ isAdmin }) {
       
       <h2>Types</h2>
       <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+
         <thead>
           <tr>
-            <th>Building</th>
-            <th>Number</th>
+            <th>Name</th>
+            <th>Description</th>
           </tr>
         </thead>
         <tbody>
-          {rooms.map(room => (
-            <tr key={room.roomID}>
-              <td>{room.buildingName}</td>
-              <td>{room.roomNumber}</td>
+          {types.map(type => (
+            <tr key={type.typeID}>
+              <td>{type.typeName}</td>
+              <td>{type.typeDescription}</td>
             </tr>
           ))}
         </tbody>
       </table>
       
-      <span>Worsevas for Sham-plain ("somehow, we imagined both as worse!"), created by Team Reagan. Copyright 2025.</span>
+      
+      <h2>Grades</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {grades.map(grade => (
+            <tr key={grade.materialID, grade.studentID}>
+              <td>{grade.grade + "/" + grade.maxPoints + " (" + gradePercent(grade.grade, grade.maxPoints) + "%)"}</td>
+              <td>{grade.comments}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

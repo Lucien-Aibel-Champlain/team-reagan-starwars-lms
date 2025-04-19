@@ -220,7 +220,7 @@ db.serialize(() => {
     (5, 4)
   `);*/
   
-  db.run(`UPDATE Materials SET materialFile = X'` + data.toString("hex")  + `' WHERE materialID = 1`);
+  //db.run(`UPDATE Materials SET materialFile = X'` + data.toString("hex")  + `' WHERE materialID = 1`);
 });
 
 module.exports = db;

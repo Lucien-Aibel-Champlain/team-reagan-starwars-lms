@@ -56,4 +56,8 @@ app.get('/types', (req, res) => {
   db.all('SELECT * FROM Types', [], (err, rows) => res.json(rows));
 });
 
+app.get('/grades', (req, res) => {
+  db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID', [], (err, rows) => res.json(rows));
+});
+
 app.listen(5000, () => console.log('Backend running on port 5000'));
