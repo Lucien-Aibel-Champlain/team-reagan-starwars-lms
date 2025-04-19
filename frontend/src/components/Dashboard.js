@@ -10,7 +10,14 @@ export default function Dashboard({ isAdmin }) {
   const [materials, setMaterials] = useState([]);
   const [types, setTypes] = useState([]);
   const [grades, setGrades] = useState([]);
-  let selectedSection = 0;
+  const [selectedSection, setSelectedSection] = useState(1);
+  
+  const selectedRow = {
+    backgroundColor: "grey"
+  }
+  const defaultRow = {
+    backgroundColor: "white"
+  }
 
   const fetchData = () => {
     fetch('http://localhost:5000/majors')
@@ -31,13 +38,13 @@ export default function Dashboard({ isAdmin }) {
     fetch('http://localhost:5000/materials')
       .then(res => res.json())
       .then(setMaterials);
-    fetch('http://localhost:5000/types')
-      .then(res => res.json())
-      .then(setTypes);
     if (selectedSection != 0) {
       fetch('http://localhost:5000/grades/section/' + selectedSection)
         .then(res => res.json())
         .then(setGrades);
+      fetch('http://localhost:5000/types/section/' + selectedSection)
+        .then(res => res.json())
+        .then(setTypes);
     }
   };
 
@@ -45,7 +52,6 @@ export default function Dashboard({ isAdmin }) {
     fetch('http://localhost:5000/material/file/' + materialID)
         .then(res => res.json())
         .then(res => {let myBlob = new Blob([new Uint8Array(res[0].materialFile.data)])
-            console.log(myBlob)
             let blobUrl = (URL.createObjectURL(myBlob))
             let link = document.createElement("a")
             link.href = blobUrl
@@ -66,7 +72,7 @@ export default function Dashboard({ isAdmin }) {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedSection]);
   
   isAdmin = true
 
@@ -166,15 +172,13 @@ export default function Dashboard({ isAdmin }) {
         </thead>
         <tbody>
           {sections.map(sec => (
-            <tr key={sec.sectionID}>
+            <tr key={sec.sectionID} onClick={() => {setSelectedSection(sec.sectionID)}} style={[defaultRow, selectedRow][+(selectedSection==sec.sectionID)]}>
               <td>{sec.coursePrefix + "-" + sec.courseNumber + "-" + sec.sectionNumber}</td>
               <td>{sec.courseName}</td>
               <td>{sec.startTime + "-" + sec.endTime + " " + sec.weekDays}</td>
               <td>{sec.startDate + " - " + sec.endDate}</td>
               <td>{sec.buildingName + " " + sec.roomNumber}</td>
               <td>{sec.lastName + ", " + sec.firstName}</td>
-              <td><button onClick={() => {selectedSection = sec.sectionID;
-              fetchData()}}>Select</button></td>
             </tr>
           ))}
         </tbody>

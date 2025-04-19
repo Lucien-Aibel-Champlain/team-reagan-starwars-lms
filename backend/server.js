@@ -57,6 +57,17 @@ app.get('/types', (req, res) => {
   db.all('SELECT * FROM Types', [], (err, rows) => res.json(rows));
 });
 
+app.get('/types/section/:id', (req, res) => {
+  if (!isNaN(parseInt(req.params.id)))
+  {
+    db.all('SELECT * FROM Types WHERE sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
+  }
+});
+
+app.get('/grades', (req, res) => {
+  db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID', [], (err, rows) => res.json(rows));
+});
+
 app.get('/grades/section/:id', (req, res) => {
   if (!isNaN(parseInt(req.params.id)))
   {
