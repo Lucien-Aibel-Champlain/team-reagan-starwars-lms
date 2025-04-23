@@ -4,8 +4,12 @@ const sqlite3 = require('sqlite3').verbose();
 const dbPath = path.resolve(__dirname, 'db.sqlite');
 const db = new sqlite3.Database(dbPath);
 
+const fs = require('node:fs');
+
+let data = fs.readFileSync('crucolo.jpg')
+
 // Create tables if not exists
-db.serialize(() => {
+db.serialize(() => {  
   db.run(`CREATE TABLE IF NOT EXISTS Majors (
     majorID INTEGER PRIMARY KEY AUTOINCREMENT,
     majorName TEXT
@@ -45,8 +49,10 @@ db.serialize(() => {
 
   db.run(`CREATE TABLE IF NOT EXISTS Types (
     typeID INTEGER PRIMARY KEY AUTOINCREMENT,
+    sectionID INTEGER,
     typeName TEXT,
-    typeDescription TEXT
+    typeDescription TEXT,
+    FOREIGN KEY (sectionID) REFERENCES Sections(sectionID)
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS Grades (
@@ -169,18 +175,18 @@ db.serialize(() => {
     ("Jack", "Black", 1, "schoolOfRock@google.com", "Geet@r")
   `);
 
-  db.run(`INSERT INTO Sections(startTime, endTime, weekDays, startDate, endDate, employeeID, roomID, courseID) VALUES
-    ("11:00:00", "13:00:00", "MTh", "2025-01-01", "2025-05-01", 1, 1, 1),
-    ("13:00:00", "15:00:00", "MTh", "2025-01-01", "2025-05-01", 1, 3, 2),
-    ("15:00:00", "17:00:00", "TF", "2025-01-01", "2025-05-01", 1, 3, 3),
-    ("17:00:00", "19:00:00", "TF", "2025-01-01", "2025-05-01", 1, 2, 4)
+  db.run(`INSERT INTO Sections(sectionNumber, startTime, endTime, weekDays, startDate, endDate, employeeID, roomID, courseID) VALUES
+    (1,"11:00:00", "13:00:00", "MTh", "2025-01-01", "2025-05-01", 1, 1, 1),
+    (1,"13:00:00", "15:00:00", "MTh", "2025-01-01", "2025-05-01", 2, 3, 2),
+    (1,"15:00:00", "17:00:00", "TF", "2025-01-01", "2025-05-01", 3, 3, 3),
+    (1,"17:00:00", "19:00:00", "TF", "2025-01-01", "2025-05-01", 5, 2, 4)
   `);
   
-  db.run(`INSERT INTO Types(typeName, typeDescription) VALUES
-    ("Quizzes", "a short, informal test"),
-    ("Projects", "must inflict some level of suffering"),
-    ("Final Exam", "Well, this is the part where he kills us."),
-    ("Contest", "a test of valor with a binary winner between students")
+  db.run(`INSERT INTO Types(typeName, sectionID, typeDescription) VALUES
+    ("Quizzes", 1, "a short, informal test"),
+    ("Projects", 1, "must inflict some level of suffering"),
+    ("Final Exam", 2, "Well, this is the part where he kills us."),
+    ("Contest", 3, "a test of valor with a binary winner between students")
   `);
   
   db.run(`INSERT INTO Materials(materialName, typeID, materialDescription, maxPoints, materialFile) VALUES
@@ -215,6 +221,8 @@ db.serialize(() => {
     (5, 3),
     (5, 4)
   `);*/
+  
+  //db.run(`UPDATE Materials SET materialFile = X'` + data.toString("hex")  + `' WHERE materialID = 1`);
 });
 
 module.exports = db;

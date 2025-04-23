@@ -21,85 +21,58 @@ app.post('/login', (req, res) => {
       res.status(401).json({ success: false });
     }
   });
-  
-  
-  
-  
-// CRUD endpoints for Category
-app.get('/categories', (req, res) => {
-  db.all('SELECT * FROM Category', [], (err, rows) => res.json(rows));
+
+app.get('/sections', (req, res) => {
+  db.all('SELECT s.courseID, s.sectionID, s.employeeID, s.roomID, s.startTime, s.endTime, s.weekDays, s.startDate, s.endDate, s.sectionNumber, c.coursePrefix, c.courseNumber, c.courseName, r.buildingName, r.roomNumber, e.firstName, e.lastName FROM Sections AS s LEFT JOIN Courses AS c on s.courseID = c.courseID LEFT JOIN Rooms AS r ON s.roomID = r.roomID LEFT JOIN Employees AS e ON s.employeeID = e.employeeID', [], (err, rows) => res.json(rows));
 });
 
-app.post('/categories', (req, res) => {
-  const { category_name } = req.body;
-  db.run('INSERT INTO Category (category_name) VALUES (?)', [category_name], function(err) {
-    res.json({ id: this.lastID });
-  });
+app.get('/majors', (req, res) => {
+  db.all('SELECT * FROM Majors', [], (err, rows) => res.json(rows));
 });
 
-// Add update/delete if needed...
+app.get('/rooms', (req, res) => {
+  db.all('SELECT * FROM Rooms', [], (err, rows) => res.json(rows));
+});
 
-// Repeat for Product table...
+app.get('/employees', (req, res) => {
+  db.all('SELECT * FROM Employees LEFT JOIN Roles ON Employees.roleID = Roles.roleID', [], (err, rows) => res.json(rows));
+});
 
-// UPDATE Category
-app.put('/categories/:id', (req, res) => {
-    const { category_name } = req.body;
-    db.run('UPDATE Category SET category_name = ? WHERE category_id = ?', 
-      [category_name, req.params.id], 
-      function(err) {
-        if (err) return res.status(500).json(err);
-        res.json({ updated: this.changes });
-      }
-    );
-  });
-  
-  // DELETE Category
-  app.delete('/categories/:id', (req, res) => {
-    db.run('DELETE FROM Category WHERE category_id = ?', [req.params.id], function(err) {
-      if (err) return res.status(500).json(err);
-      res.json({ deleted: this.changes });
-    });
-  });
-  
-  // GET all Products
-app.get('/products', (req, res) => {
-    db.all('SELECT * FROM Product', [], (err, rows) => {
-      if (err) return res.status(500).json(err);
-      res.json(rows);
-    });
-  });
-  
-  // ADD Product
-  app.post('/products', (req, res) => {
-    const { product_name, price, category_id } = req.body;
-    db.run('INSERT INTO Product (product_name, price, category_id) VALUES (?, ?, ?)', 
-      [product_name, price, category_id], 
-      function(err) {
-        if (err) return res.status(500).json(err);
-        res.json({ id: this.lastID });
-      }
-    );
-  });
-  
-  // UPDATE Product
-  app.put('/products/:id', (req, res) => {
-    const { product_name, price, category_id } = req.body;
-    db.run('UPDATE Product SET product_name = ?, price = ?, category_id = ? WHERE product_id = ?', 
-      [product_name, price, category_id, req.params.id], 
-      function(err) {
-        if (err) return res.status(500).json(err);
-        res.json({ updated: this.changes });
-      }
-    );
-  });
-  
-  // DELETE Product
-  app.delete('/products/:id', (req, res) => {
-    db.run('DELETE FROM Product WHERE product_id = ?', [req.params.id], function(err) {
-      if (err) return res.status(500).json(err);
-      res.json({ deleted: this.changes });
-    });
-  });
-  
+app.get('/roles', (req, res) => {
+  db.all('SELECT * FROM Roles', [], (err, rows) => res.json(rows));
+});
+
+app.get('/materials', (req, res) => {
+  db.all('SELECT materialID, materialName, Materials.typeID, typeName, materialDescription, maxPoints FROM Materials LEFT JOIN Types ON Materials.typeID = Types.typeID', [], (err, rows) => res.json(rows));
+});
+
+app.get('/material/file/:id', (req, res) => {
+  if (!isNaN(parseInt(req.params.id)))
+  {
+    db.all('SELECT materialFile FROM Materials WHERE materialID = ' + req.params.id, [], (err, rows) => res.json(rows));
+  }
+});
+
+app.get('/types', (req, res) => {
+  db.all('SELECT * FROM Types', [], (err, rows) => res.json(rows));
+});
+
+app.get('/types/section/:id', (req, res) => {
+  if (!isNaN(parseInt(req.params.id)))
+  {
+    db.all('SELECT * FROM Types WHERE sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
+  }
+});
+
+app.get('/grades', (req, res) => {
+  db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID', [], (err, rows) => res.json(rows));
+});
+
+app.get('/grades/section/:id', (req, res) => {
+  if (!isNaN(parseInt(req.params.id)))
+  {
+    db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID LEFT JOIN MaterialSections ON Grades.materialID = MaterialSections.materialID WHERE MaterialSections.sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
+  }
+});
 
 app.listen(5000, () => console.log('Backend running on port 5000'));
