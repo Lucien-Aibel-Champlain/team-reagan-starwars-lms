@@ -11,16 +11,22 @@ app.post('/login', (req, res) => {
     console.log('🛠️ LOGIN ATTEMPT RECEIVED');
     console.log('Request headers:', req.headers);
     console.log('Request body:', req.body);
-  
+	
     const { user, password } = req.body;
-    if (user === 'ADMIN' && password === 'ADMIN') {
-      console.log('✅ Login success');
-      res.json({ success: true });
-    } else {
-      console.log('❌ Invalid credentials');
-      res.status(401).json({ success: false });
-    }
-  });
+	
+	db.all("SELECT * FROM Employees", (error, rows) => {
+		
+		let validLogin = rows.some(row => (user === row.email && password === row.password));
+		
+		if (validLogin){
+			console.log('✅ Login success');
+			res.json({ success: true });
+		} else {
+			console.log('❌ Invalid credentials ');
+			res.status(401).json({ success: false });
+		}
+	});
+});
 
 app.get('/sections', (req, res) => {
   db.all('SELECT s.courseID, s.sectionID, s.employeeID, s.roomID, s.startTime, s.endTime, s.weekDays, s.startDate, s.endDate, s.sectionNumber, c.coursePrefix, c.courseNumber, c.courseName, r.buildingName, r.roomNumber, e.firstName, e.lastName FROM Sections AS s LEFT JOIN Courses AS c on s.courseID = c.courseID LEFT JOIN Rooms AS r ON s.roomID = r.roomID LEFT JOIN Employees AS e ON s.employeeID = e.employeeID', [], (err, rows) => res.json(rows));
