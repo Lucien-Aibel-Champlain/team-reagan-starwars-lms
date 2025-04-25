@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 export default function Login({ onLogin }) {
+  const [email, setEmail] = useState('');
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
 
@@ -11,7 +12,7 @@ export default function Login({ onLogin }) {
     const res = await fetch('http://localhost:5000/getEmployeeDetails', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: user }), // Send the userID (email) to the backend
+      body: JSON.stringify({ email: email }), // Send the userID (email) to the backend
     });
 
     if (res.ok) {
@@ -22,12 +23,12 @@ export default function Login({ onLogin }) {
       const loginRes = await fetch('http://localhost:5000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (loginRes.ok) {
         // Pass the name, role, and userID to the parent component
-        onLogin({ userID: user, name: data.name, role: data.role });
+        onLogin(user);
       } else {
         alert('Invalid credentials');
       }
@@ -39,9 +40,9 @@ export default function Login({ onLogin }) {
   return (
     <form onSubmit={handleSubmit}>
       <input
-        placeholder="User ID"
-        value={user}
-        onChange={(e) => setUser(e.target.value)}
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
       />
       <input
         type="password"

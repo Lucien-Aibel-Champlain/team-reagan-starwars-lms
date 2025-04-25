@@ -4,15 +4,15 @@ import Login from './components/Login';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false); // Tracks login status
-  const [userInfo, setUserInfo] = useState(null); // Stores logged-in user details
+  const [userID, setUserID] = useState(null); // Stores logged-in user details
 
-  const handleLogin = (userData) => {
-    setUserInfo(userData); // Store user details
+  const handleLogin = (loginUserID) => {
+    setUserID(loginUserID); // Store user details
     setLoggedIn(true); // Set logged-in status
   };
 
   const handleLogout = () => {
-    setUserInfo(null); // Clear user details
+    setUserID(null); // Clear user details
     setLoggedIn(false); // Set logged-out status
   };
 
@@ -25,7 +25,7 @@ function App() {
           <button onClick={handleLogout}>Logout</button>
         )}
       </div>
-      {loggedIn && <Dashboard user={userInfo} />} {/* Pass user info to Dashboard */}
+      {loggedIn && <Dashboard user={userID} />} {/* Pass user info to Dashboard */}
     </div>
   );
 }
