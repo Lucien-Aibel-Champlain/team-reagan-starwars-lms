@@ -5,6 +5,8 @@ import Form from './Form';
 //admin panel shows all but not course materials/types/grades
 
 export default function Dashboard({ isAdmin }) {
+  //variables for storing all table data
+  //useState means that React will automatically rerender parts of the page they're used in when they update, as long as they're updated with the function returned as the second paramter of useState
   const [sections, setSections] = useState([]);
   const [majors, setMajors] = useState([]);
   const [studentMajors, setStudentMajors] = useState({});
@@ -15,9 +17,12 @@ export default function Dashboard({ isAdmin }) {
   const [types, setTypes] = useState([]);
   const [grades, setGrades] = useState([]);
   const [students, setStudents] = useState([]);
+  
+  //vars for which column is currently selected
   const [selectedMaterial, setSelectedMaterial] = useState(0);
   const [selectedSection, setSelectedSection] = useState(0);
   
+  //styling for rows that are selected vs not
   const selectedRow = {
     backgroundColor: "grey"
   }
@@ -25,6 +30,7 @@ export default function Dashboard({ isAdmin }) {
     backgroundColor: "white"
   }
 
+  //fetch general data (doesn't vary based on which section/material is selected)
   const fetchData = () => {
     fetch('http://localhost:5000/majors')
       .then(res => res.json()) 
@@ -65,6 +71,7 @@ export default function Dashboard({ isAdmin }) {
       }
   };
   
+  //fetch each student's major(s) with a seperate request. made as seperate requests to join all the student's majors into one array (turned into a string when displayed)
   const fetchMajors = () => {
     let promiseArray = [];
     for (let student of students) {
@@ -80,31 +87,44 @@ export default function Dashboard({ isAdmin }) {
         })
   };
 
-  const downloadFile = (materialID) => {
-    fetch('http://localhost:5000/material/file/' + materialID)
-        .then(res => res.json())
-        .then(res => {let myBlob = new Blob([new Uint8Array(res[0].materialFile.data)])
+  //download the file at link with name
+  const downloadFile = (link, name) => {
+    //helper function to do file processing
+    const processFile = (res) => {
+        if (res[0].materialFile != null) {
+            let myBlob = new Blob([new Uint8Array(res[0].materialFile.data)])
             let blobUrl = (URL.createObjectURL(myBlob))
             let link = document.createElement("a")
             link.href = blobUrl
-            link.download = "file.jpg"
+            link.download = name
             link.click()
             link.remove()
-        });
+        }
+    }
+  
+    //actually go fetch the file
+    fetch(link)
+        .then(res => res.json())
+        .then(res => processFile(res));
   }
   
-  const findMajors = (studentID) => {
+  //unpack the majors of a given student into a string
+  const stringMajors = (studentID) => {
+    //if this student doesn't exist, we're done
     if (studentMajors[studentID] == undefined) {
         return ""
     }
+    //otherwise, stringify their major list
     let out = ""
     for (let x of studentMajors[studentID]) {
         out += ", " + x.majorName
     }
-    return out.slice(2)
+    return out.slice(2) //sliced to remove the ", " from the first entry
   }
   
+  //calculate what percent points represents of maxPoints
   const gradePercent = (points, maxPoints) => {
+    //this is why this is a seperate function: handling this divide by zero error
     if (maxPoints == 0) {
         return 100
     }
@@ -113,6 +133,7 @@ export default function Dashboard({ isAdmin }) {
     }
   }
   
+  //check the propertyName of every element of fullList to see if value is in it
   const propertyExists = (value, propertyName, fullList) => {
     for (let x of fullList) {
         if (x[propertyName] == value) { return true }
@@ -120,6 +141,7 @@ export default function Dashboard({ isAdmin }) {
     return false
   }
   
+  //select the first value in fullList if nothing valid is selected
   const defaultSelection = (currentValue, mutator, propertyName, fullList) => {
     if (fullList.length > 0) {
         if (!propertyExists(currentValue, propertyName, fullList)) {
@@ -131,10 +153,12 @@ export default function Dashboard({ isAdmin }) {
     }
   }
 
+  //fetch initial data only when starting (remove the [] to do on every render, or add a variable to do so when that variable changes)
   useEffect(() => {
     fetchData();
   }, []);
 
+  //when sections or materials change, select one if possible
   useEffect(() => {
     defaultSelection(selectedSection, setSelectedSection, "sectionID", sections)
   }, [sections]);
@@ -143,6 +167,7 @@ export default function Dashboard({ isAdmin }) {
     defaultSelection(selectedMaterial, setSelectedMaterial, "materialID", materials)
   }, [materials]);
   
+  //when selection changes on either category, fetch the relevant data
   useEffect(() => {
     fetchSectionData();
   }, [selectedSection]);
@@ -151,6 +176,7 @@ export default function Dashboard({ isAdmin }) {
     fetchMaterialData();
   }, [selectedMaterial]);
   
+  //whenever the students are fetched/changed, fetch their majors
   useEffect(() => {
     fetchMajors();
   }, [students]);
@@ -281,7 +307,7 @@ export default function Dashboard({ isAdmin }) {
               <td>{mat.materialDescription}</td>
               <td>{mat.typeName}</td>
               <td>{mat.maxPoints}</td>
-              <td><button onClick={() => downloadFile(mat.materialID)}>Download</button></td>
+              <td><button onClick={() => downloadFile('http://localhost:5000/material/file/' + mat.materialID, mat.fileName)}>Download</button></td>
             </tr>
           ))}
         </tbody>
@@ -342,7 +368,7 @@ export default function Dashboard({ isAdmin }) {
             <tr key={student.studentID}>
               <td>{student.lastName + ", " + student.firstName}</td>
               <td><a href={"mailto:" + student.email}>{student.email}</a></td>
-              <td>{findMajors(student.studentID)}</td>
+              <td>{stringMajors(student.studentID)}</td>
               <td>{student.graduationYear}</td>
             </tr>
           ))}
