@@ -28,6 +28,25 @@ app.post('/login', (req, res) => {
 	});
 });
 
+app.post('/getEmployeeDetails', (req, res) => {
+  const { email } = req.body;
+
+  // Query the database for the employee's name and role
+  db.get(
+    'SELECT firstName || " " || lastName AS name, roleName AS role FROM Employees LEFT JOIN Roles ON Employees.roleID = Roles.roleID WHERE email = ?',
+    [email],
+    (err, row) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (!row) {
+        res.status(404).json({ error: 'User not found' });
+      } else {
+        res.json({ name: row.name, role: row.role });
+      }
+    }
+  );
+});
+
 app.get('/sections', (req, res) => {
   db.all('SELECT s.courseID, s.sectionID, s.employeeID, s.roomID, s.startTime, s.endTime, s.weekDays, s.startDate, s.endDate, s.sectionNumber, c.coursePrefix, c.courseNumber, c.courseName, r.buildingName, r.roomNumber, e.firstName, e.lastName FROM Sections AS s LEFT JOIN Courses AS c on s.courseID = c.courseID LEFT JOIN Rooms AS r ON s.roomID = r.roomID LEFT JOIN Employees AS e ON s.employeeID = e.employeeID', [], (err, rows) => res.json(rows));
 });
@@ -52,13 +71,6 @@ app.get('/materials', (req, res) => {
   db.all('SELECT materialID, materialName, Materials.typeID, typeName, materialDescription, maxPoints FROM Materials LEFT JOIN Types ON Materials.typeID = Types.typeID', [], (err, rows) => res.json(rows));
 });
 
-app.get('/materials/section/:id', (req, res) => {
-  if (!isNaN(parseInt(req.params.id)))
-  {
-    db.all('SELECT Materials.materialID, materialName, fileName, Materials.typeID, typeName, materialDescription, maxPoints FROM Materials LEFT JOIN Types ON Materials.typeID = Types.typeID LEFT JOIN MaterialSections ON Materials.materialID = MaterialSections.materialID LEFT JOIN Sections ON MaterialSections.sectionID = Sections.sectionID WHERE Sections.sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
-  }
-});
-
 app.get('/material/file/:id', (req, res) => {
   if (!isNaN(parseInt(req.params.id)))
   {
@@ -81,28 +93,10 @@ app.get('/grades', (req, res) => {
   db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID', [], (err, rows) => res.json(rows));
 });
 
-app.get('/grades/material/:id', (req, res) => {
+app.get('/grades/section/:id', (req, res) => {
   if (!isNaN(parseInt(req.params.id)))
   {
-    db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints, Students.firstName, Students.lastName FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID WHERE Materials.materialID = ' + req.params.id, [], (err, rows) => res.json(rows));
-  }
-});
-
-app.get('/students', (req, res) => {
-  db.all('SELECT Students.studentID, firstName, lastName, email, graduationYear FROM Students', [], (err, rows) => res.json(rows));
-});
-
-app.get('/students/section/:id', (req, res) => {
-  if (!isNaN(parseInt(req.params.id)))
-  {
-    db.all('SELECT Students.studentID, firstName, lastName, email, graduationYear FROM Students LEFT JOIN StudentSections ON Students.studentID = StudentSections.studentID WHERE StudentSections.sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
-  }
-});
-
-app.get('/students/majors/:id', (req, res) => {
-  if (!isNaN(parseInt(req.params.id)))
-  {
-    db.all('SELECT majorName FROM Students LEFT JOIN StudentMajors ON Students.studentID = StudentMajors.studentID LEFT JOIN Majors ON StudentMajors.majorID = Majors.majorID WHERE Students.studentID = ' + req.params.id, [], (err, rows) => res.json(rows));
+    db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID LEFT JOIN MaterialSections ON Grades.materialID = MaterialSections.materialID WHERE MaterialSections.sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
   }
 });
 
