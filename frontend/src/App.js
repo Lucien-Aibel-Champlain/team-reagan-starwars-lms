@@ -3,18 +3,29 @@ import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false); // Tracks login status
+  const [userInfo, setUserInfo] = useState(null); // Stores logged-in user details
+
+  const handleLogin = (userData) => {
+    setUserInfo(userData); // Store user details
+    setLoggedIn(true); // Set logged-in status
+  };
+
+  const handleLogout = () => {
+    setUserInfo(null); // Clear user details
+    setLoggedIn(false); // Set logged-out status
+  };
 
   return (
     <div>
       <div style={{ textAlign: 'right', padding: '10px' }}>
         {!loggedIn ? (
-          <Login onLogin={() => setLoggedIn(true)} />
+          <Login onLogin={handleLogin} />
         ) : (
-          <button onClick={() => setLoggedIn(false)}>Logout</button>
+          <button onClick={handleLogout}>Logout</button>
         )}
       </div>
-      <Dashboard isAdmin={loggedIn} />
+      {loggedIn && <Dashboard user={userInfo} />} {/* Pass user info to Dashboard */}
     </div>
   );
 }
