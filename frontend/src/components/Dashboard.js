@@ -67,8 +67,6 @@ export default function Dashboard({ isAdmin }) {
         setStudentMajors(newDict);
         })
   };
-  
-  const stuUp = () => { console.log("autodetect:"); console.log(studentMajors) };
 
   const downloadFile = (materialID) => {
     fetch('http://localhost:5000/material/file/' + materialID)
@@ -83,9 +81,12 @@ export default function Dashboard({ isAdmin }) {
         });
   }
   
-  const majorArrayToString = (majorArray) => {
+  const findMajors = (studentID) => {
+    if (studentMajors[studentID] == undefined) {
+        return ""
+    }
     let out = ""
-    for (let x of majorArray) {
+    for (let x of studentMajors[studentID]) {
         out += ", " + x.majorName
     }
     return out.slice(2)
@@ -107,10 +108,6 @@ export default function Dashboard({ isAdmin }) {
   useEffect(() => {
     fetchMajors();
   }, [students]);
-  
-  useEffect(() => {
-    stuUp();
-  }, [studentMajors]);
 
   return (
     <div>
@@ -297,7 +294,7 @@ export default function Dashboard({ isAdmin }) {
             <tr key={student.studentID}>
               <td>{student.lastName + ", " + student.firstName}</td>
               <td><a href={"mailto:" + student.email}>{student.email}</a></td>
-              <td>{(student.studentID in Object.keys(studentMajors)) ? majorArrayToString(studentMajors[student.studentID]): ""}</td>
+              <td>{findMajors(student.studentID)}</td>
               <td>{student.graduationYear}</td>
             </tr>
           ))}
