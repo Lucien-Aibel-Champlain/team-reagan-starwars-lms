@@ -1,6 +1,9 @@
 import { useEffect, useState, Button } from 'react';
 import Form from './Form';
 
+//TODO
+//admin panel shows all but not course materials/types/grades
+
 export default function Dashboard({ isAdmin }) {
   const [sections, setSections] = useState([]);
   const [majors, setMajors] = useState([]);
@@ -12,7 +15,8 @@ export default function Dashboard({ isAdmin }) {
   const [types, setTypes] = useState([]);
   const [grades, setGrades] = useState([]);
   const [students, setStudents] = useState([]);
-  const [selectedSection, setSelectedSection] = useState(1);
+  const [selectedMaterial, setSelectedMaterial] = useState(0);
+  const [selectedSection, setSelectedSection] = useState(0);
   
   const selectedRow = {
     backgroundColor: "grey"
@@ -30,27 +34,35 @@ export default function Dashboard({ isAdmin }) {
       .then(setRooms);
     fetch('http://localhost:5000/sections')
       .then(res => res.json())
-      .then(setSections);
+      .then(setSections)
     fetch('http://localhost:5000/employees')
       .then(res => res.json())
       .then(setEmployees);
     fetch('http://localhost:5000/roles')
       .then(res => res.json())
       .then(setRoles);
-    fetch('http://localhost:5000/students')
-      .then(res => res.json())
-      .then(setStudents);
+  };
+  
+  const fetchSectionData = () => {
     if (selectedSection != 0) {
+      fetch('http://localhost:5000/students/section/' + selectedSection)
+        .then(res => res.json())
+        .then(setStudents);
       fetch('http://localhost:5000/materials/section/' + selectedSection)
         .then(res => res.json())
         .then(setMaterials);
-      fetch('http://localhost:5000/grades/section/' + selectedSection)
-        .then(res => res.json())
-        .then(setGrades);
       fetch('http://localhost:5000/types/section/' + selectedSection)
         .then(res => res.json())
         .then(setTypes);
     }
+  };
+  
+  const fetchMaterialData = () => {
+      if (selectedMaterial != 0) {
+          fetch('http://localhost:5000/grades/material/' + selectedMaterial)
+            .then(res => res.json())
+            .then(setGrades);
+      }
   };
   
   const fetchMajors = () => {
@@ -100,10 +112,44 @@ export default function Dashboard({ isAdmin }) {
         return (points / maxPoints) * 100
     }
   }
+  
+  const propertyExists = (value, propertyName, fullList) => {
+    for (let x of fullList) {
+        if (x[propertyName] == value) { return true }
+    }
+    return false
+  }
+  
+  const defaultSelection = (currentValue, mutator, propertyName, fullList) => {
+    if (fullList.length > 0) {
+        if (!propertyExists(currentValue, propertyName, fullList)) {
+            mutator(fullList[0][propertyName])
+        }
+    }
+    else {
+        mutator(0)
+    }
+  }
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    defaultSelection(selectedSection, setSelectedSection, "sectionID", sections)
+  }, [sections]);
+  
+  useEffect(() => {
+    defaultSelection(selectedMaterial, setSelectedMaterial, "materialID", materials)
+  }, [materials]);
+  
+  useEffect(() => {
+    fetchSectionData();
   }, [selectedSection]);
+  
+  useEffect(() => {
+    fetchMaterialData();
+  }, [selectedMaterial]);
   
   useEffect(() => {
     fetchMajors();
@@ -230,7 +276,7 @@ export default function Dashboard({ isAdmin }) {
         </thead>
         <tbody>
           {materials.map(mat => (
-            <tr key={mat.materialID}>
+            <tr key={mat.materialID} onClick={() => {setSelectedMaterial(mat.materialID)}} style={[defaultRow, selectedRow][+(selectedMaterial==mat.materialID)]}>
               <td>{mat.materialName}</td>
               <td>{mat.materialDescription}</td>
               <td>{mat.typeName}</td>
@@ -265,8 +311,9 @@ export default function Dashboard({ isAdmin }) {
       <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Description</th>
+            <th>Grade</th>
+            <th>Comment</th>
+            <th>Student</th>
           </tr>
         </thead>
         <tbody>
@@ -274,6 +321,7 @@ export default function Dashboard({ isAdmin }) {
             <tr key={grade.materialID, grade.studentID}>
               <td>{grade.grade + "/" + grade.maxPoints + " (" + gradePercent(grade.grade, grade.maxPoints) + "%)"}</td>
               <td>{grade.comments}</td>
+              <td>{grade.lastName + ", " + grade.firstName}</td>
             </tr>
           ))}
         </tbody>
