@@ -55,7 +55,7 @@ app.get('/materials', (req, res) => {
 app.get('/materials/section/:id', (req, res) => {
   if (!isNaN(parseInt(req.params.id)))
   {
-    db.all('SELECT Materials.materialID, materialName, Materials.typeID, typeName, materialDescription, maxPoints FROM Materials LEFT JOIN Types ON Materials.typeID = Types.typeID LEFT JOIN MaterialSections ON Materials.materialID = MaterialSections.materialID LEFT JOIN Sections ON MaterialSections.sectionID = Sections.sectionID WHERE Sections.sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
+    db.all('SELECT Materials.materialID, materialName, fileName, Materials.typeID, typeName, materialDescription, maxPoints FROM Materials LEFT JOIN Types ON Materials.typeID = Types.typeID LEFT JOIN MaterialSections ON Materials.materialID = MaterialSections.materialID LEFT JOIN Sections ON MaterialSections.sectionID = Sections.sectionID WHERE Sections.sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
   }
 });
 
@@ -81,15 +81,22 @@ app.get('/grades', (req, res) => {
   db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID', [], (err, rows) => res.json(rows));
 });
 
-app.get('/grades/section/:id', (req, res) => {
+app.get('/grades/material/:id', (req, res) => {
   if (!isNaN(parseInt(req.params.id)))
   {
-    db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID LEFT JOIN MaterialSections ON Grades.materialID = MaterialSections.materialID WHERE MaterialSections.sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
+    db.all('SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints, Students.firstName, Students.lastName FROM Grades LEFT JOIN Materials ON Grades.materialID = Materials.materialID  LEFT JOIN Students ON Grades.studentID = Students.studentID WHERE Materials.materialID = ' + req.params.id, [], (err, rows) => res.json(rows));
   }
 });
 
 app.get('/students', (req, res) => {
   db.all('SELECT Students.studentID, firstName, lastName, email, graduationYear FROM Students', [], (err, rows) => res.json(rows));
+});
+
+app.get('/students/section/:id', (req, res) => {
+  if (!isNaN(parseInt(req.params.id)))
+  {
+    db.all('SELECT Students.studentID, firstName, lastName, email, graduationYear FROM Students LEFT JOIN StudentSections ON Students.studentID = StudentSections.studentID WHERE StudentSections.sectionID = ' + req.params.id, [], (err, rows) => res.json(rows));
+  }
 });
 
 app.get('/students/majors/:id', (req, res) => {

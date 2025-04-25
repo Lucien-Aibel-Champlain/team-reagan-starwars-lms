@@ -43,6 +43,7 @@ db.serialize(() => {
     typeID INTEGER,
     materialDescription TEXT,
     maxPoints INTEGER,
+    fileName TEXT,
     materialFile BLOB,
     FOREIGN KEY (typeID) REFERENCES Types(typeID)
   )`);
@@ -120,7 +121,6 @@ db.serialize(() => {
     FOREIGN KEY (sectionID) REFERENCES Sections(sectionID),
     PRIMARY KEY (sectionID, studentID)
   )`);
-  
   /*
   db.run(`INSERT INTO Majors(majorName) VALUES
     ("Cheesemongering"),
@@ -189,10 +189,10 @@ db.serialize(() => {
     ("Contest", 3, "a test of valor with a binary winner between students")
   `);
   
-  db.run(`INSERT INTO Materials(materialName, typeID, materialDescription, maxPoints, materialFile) VALUES
-    ("cultOfVikas", 1, "A photo of nerds in joyce 201 slaving away to pass a class", 2, NULL),
-    ("its a small world", 1, "its a ride in disneyland", 5000, NULL),
-    ("42", 3, "its the meaning of life", 0, NULL)
+  db.run(`INSERT INTO Materials(materialName, typeID, materialDescription, maxPoints, fileName, materialFile) VALUES
+    ("cultOfVikas", 1, "A photo of nerds in joyce 201 slaving away to pass a class", 2, "cheese.jpg", X'` + data.toString("hex")  + `'),
+    ("its a small world", 1, "its a ride in disneyland", 5000, "", NULL),
+    ("42", 3, "its the meaning of life", 0, "", NULL)
   `);
   
   db.run(`INSERT INTO MaterialSections(materialID, sectionID) VALUES
@@ -221,8 +221,6 @@ db.serialize(() => {
     (5, 3),
     (5, 4)
   `);*/
-  
-  //db.run(`UPDATE Materials SET materialFile = X'` + data.toString("hex")  + `' WHERE materialID = 1`);
 });
 
 module.exports = db;
