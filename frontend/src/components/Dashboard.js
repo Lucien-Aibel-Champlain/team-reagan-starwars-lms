@@ -4,12 +4,14 @@ import Form from './Form';
 export default function Dashboard({ isAdmin }) {
   const [sections, setSections] = useState([]);
   const [majors, setMajors] = useState([]);
+  const [studentMajors, setStudentMajors] = useState({});
   const [rooms, setRooms] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [roles, setRoles] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [types, setTypes] = useState([]);
   const [grades, setGrades] = useState([]);
+  const [students, setStudents] = useState([]);
   const [selectedSection, setSelectedSection] = useState(1);
   
   const selectedRow = {
@@ -21,7 +23,7 @@ export default function Dashboard({ isAdmin }) {
 
   const fetchData = () => {
     fetch('http://localhost:5000/majors')
-      .then(res => res.json())
+      .then(res => res.json()) 
       .then(setMajors);
     fetch('http://localhost:5000/rooms')
       .then(res => res.json())
@@ -35,10 +37,13 @@ export default function Dashboard({ isAdmin }) {
     fetch('http://localhost:5000/roles')
       .then(res => res.json())
       .then(setRoles);
-    fetch('http://localhost:5000/materials')
+    fetch('http://localhost:5000/students')
       .then(res => res.json())
-      .then(setMaterials);
+      .then(setStudents);
     if (selectedSection != 0) {
+      fetch('http://localhost:5000/materials/section/' + selectedSection)
+        .then(res => res.json())
+        .then(setMaterials);
       fetch('http://localhost:5000/grades/section/' + selectedSection)
         .then(res => res.json())
         .then(setGrades);
@@ -47,6 +52,23 @@ export default function Dashboard({ isAdmin }) {
         .then(setTypes);
     }
   };
+  
+  const fetchMajors = () => {
+    let promiseArray = [];
+    for (let student of students) {
+      promiseArray.push(fetch('http://localhost:5000/students/majors/' + student.studentID)
+        .then(res => res.json())
+        .then(res => [student.studentID, res])
+        );
+    }
+    Promise.all(promiseArray).then(results => { let newDict = {}; for (let element of results) {
+            newDict[element[0]] = element[1]
+        };
+        setStudentMajors(newDict);
+        })
+  };
+  
+  const stuUp = () => { console.log("autodetect:"); console.log(studentMajors) };
 
   const downloadFile = (materialID) => {
     fetch('http://localhost:5000/material/file/' + materialID)
@@ -59,6 +81,14 @@ export default function Dashboard({ isAdmin }) {
             link.click()
             link.remove()
         });
+  }
+  
+  const majorArrayToString = (majorArray) => {
+    let out = ""
+    for (let x of majorArray) {
+        out += ", " + x.majorName
+    }
+    return out.slice(2)
   }
   
   const gradePercent = (points, maxPoints) => {
@@ -74,7 +104,13 @@ export default function Dashboard({ isAdmin }) {
     fetchData();
   }, [selectedSection]);
   
-  isAdmin = true
+  useEffect(() => {
+    fetchMajors();
+  }, [students]);
+  
+  useEffect(() => {
+    stuUp();
+  }, [studentMajors]);
 
   return (
     <div>
@@ -131,7 +167,7 @@ export default function Dashboard({ isAdmin }) {
               <td>{emp.firstName}</td>
               <td>{emp.lastName}</td>
               <td>{emp.roleName}</td>
-              <td>{emp.email}</td>
+              <td><a href={"mailto:" + emp.email}>{emp.email}</a></td>
               <td>{emp.password}</td>
             </tr>
           ))}
@@ -241,6 +277,28 @@ export default function Dashboard({ isAdmin }) {
             <tr key={grade.materialID, grade.studentID}>
               <td>{grade.grade + "/" + grade.maxPoints + " (" + gradePercent(grade.grade, grade.maxPoints) + "%)"}</td>
               <td>{grade.comments}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      
+      <h2>Students</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Major</th>
+            <th>Graduation Year</th>
+          </tr>
+        </thead>
+        <tbody>
+          {students.map(student => (
+            <tr key={student.studentID}>
+              <td>{student.lastName + ", " + student.firstName}</td>
+              <td><a href={"mailto:" + student.email}>{student.email}</a></td>
+              <td>{(student.studentID in Object.keys(studentMajors)) ? majorArrayToString(studentMajors[student.studentID]): ""}</td>
+              <td>{student.graduationYear}</td>
             </tr>
           ))}
         </tbody>
