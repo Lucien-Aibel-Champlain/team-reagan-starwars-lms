@@ -182,6 +182,137 @@ export default function Dashboard({ user }) {
   
   let isAdmin = propertyExists(user.userID, "userID", employees)
 
+  const [editRow, setEditRow] = useState(null); // Tracks the row being edited
+  const [newRow, setNewRow] = useState({ majorName: '' }); // Tracks the new row data
+
+  // Handle delete
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this row?')) {
+      fetch(`http://localhost:5000/majors/${id}`, { method: 'DELETE' })
+        .then((res) => res.json())
+        .then(() => fetchData()); // Refresh the table
+    }
+  };
+
+  // Handle submit (insert or update)
+  const handleSubmit = () => {
+    if (window.confirm('Are you sure you want to submit this row?')) {
+      const method = editRow ? 'PUT' : 'POST';
+      const url = editRow
+        ? `http://localhost:5000/majors/${editRow.majorID}`
+        : 'http://localhost:5000/majors';
+
+      const payload = editRow
+        ? { ...newRow, majorID: editRow.majorID } // Include majorID for updates
+        : newRow;
+
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          setEditRow(null); // Clear edit state
+          setNewRow({ majorName: '' }); // Clear input fields
+          fetchData(); // Refresh the table
+        })
+        .catch((err) => console.error('Error:', err));
+    }
+  };
+
+  // Handle edit
+  const handleEdit = (row) => {
+    setEditRow(row); // Set the row being edited
+    setNewRow({ majorName: row.majorName, majorID: row.majorID }); // Include majorID
+  };
+
+  const [editRoomRow, setEditRoomRow] = useState(null); // Tracks the row being edited for Rooms
+  const [newRoomRow, setNewRoomRow] = useState({ buildingName: '', roomNumber: '' }); // Tracks the new row data for Rooms
+
+  // Handle delete for Rooms
+  const handleRoomDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this room?')) {
+      fetch(`http://localhost:5000/rooms/${id}`, { method: 'DELETE' })
+        .then((res) => res.json())
+        .then(() => fetchData()); // Refresh the table
+    }
+  };
+
+  // Handle submit (insert or update) for Rooms
+  const handleRoomSubmit = () => {
+    if (window.confirm('Are you sure you want to submit this room?')) {
+      const method = editRoomRow ? 'PUT' : 'POST';
+      const url = editRoomRow
+        ? `http://localhost:5000/rooms/${editRoomRow.roomID}`
+        : 'http://localhost:5000/rooms';
+
+      const payload = editRoomRow
+        ? { ...newRoomRow, roomID: editRoomRow.roomID } // Include roomID for updates
+        : newRoomRow;
+
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          setEditRoomRow(null); // Clear edit state
+          setNewRoomRow({ buildingName: '', roomNumber: '' }); // Clear input fields
+          fetchData(); // Refresh the table
+        })
+        .catch((err) => console.error('Error:', err));
+    }
+  };
+
+  // Handle edit for Rooms
+  const handleRoomEdit = (row) => {
+    setEditRoomRow(row); // Set the row being edited
+    setNewRoomRow({ buildingName: row.buildingName, roomNumber: row.roomNumber, roomID: row.roomID }); // Include roomID
+  };
+
+  const [editCourseRow, setEditCourseRow] = useState(null);
+  const [newCourseRow, setNewCourseRow] = useState({ coursePrefix: '', courseNumber: '', courseName: '' });
+
+  const handleCourseDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      fetch(`http://localhost:5000/courselist/${id}`, { method: 'DELETE' })
+        .then((res) => res.json())
+        .then(() => fetchData());
+    }
+  };
+
+  const handleCourseSubmit = () => {
+    if (window.confirm('Are you sure you want to submit this course?')) {
+      const method = editCourseRow ? 'PUT' : 'POST';
+      const url = editCourseRow
+        ? `http://localhost:5000/courselist/${editCourseRow.courseID}`
+        : 'http://localhost:5000/courselist';
+
+      const payload = editCourseRow
+        ? { ...newCourseRow, courseID: editCourseRow.courseID }
+        : newCourseRow;
+
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          setEditCourseRow(null);
+          setNewCourseRow({ coursePrefix: '', courseNumber: '', courseName: '' });
+          fetchData();
+        });
+    }
+  };
+
+  const handleCourseEdit = (row) => {
+    setEditCourseRow(row);
+    setNewCourseRow({ coursePrefix: row.coursePrefix, courseNumber: row.courseNumber, courseName: row.courseName });
+  };
+
   return (
     <div>
       {/* Display the name and role */}
@@ -196,14 +327,34 @@ export default function Dashboard({ user }) {
         <thead>
           <tr>
             <th>Name</th>
+            <th>Actions</th> {/* New Actions column */}
           </tr>
         </thead>
         <tbody>
-          {majors.map(maj => (
+          {majors.map((maj) => (
             <tr key={maj.majorID}>
               <td>{maj.majorName}</td>
+              <td>
+                <button onClick={() => handleEdit(maj)}>Edit</button>
+                <button onClick={() => handleDelete(maj.majorID)}>Delete</button>
+              </td>
             </tr>
           ))}
+          {/* Insert/Edit Row */}
+          <tr>
+            <td>
+              <input
+                type="text"
+                value={newRow.majorName}
+                onChange={(e) => setNewRow({ ...newRow, majorName: e.target.value })}
+              />
+            </td>
+            <td>
+              <button onClick={handleSubmit}>
+                {editRow ? 'Update' : 'Add'}
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
       
@@ -213,15 +364,44 @@ export default function Dashboard({ user }) {
           <tr>
             <th>Building</th>
             <th>Number</th>
+            <th>Actions</th> {/* New Actions column */}
           </tr>
         </thead>
         <tbody>
-          {rooms.map(room => (
+          {rooms.map((room) => (
             <tr key={room.roomID}>
               <td>{room.buildingName}</td>
               <td>{room.roomNumber}</td>
+              <td>
+                <button onClick={() => handleRoomEdit(room)}>Edit</button>
+                <button onClick={() => handleRoomDelete(room.roomID)}>Delete</button>
+              </td>
             </tr>
           ))}
+          {/* Insert/Edit Row */}
+          <tr>
+            <td>
+              <input
+                type="text"
+                value={newRoomRow.buildingName}
+                onChange={(e) => setNewRoomRow({ ...newRoomRow, buildingName: e.target.value })}
+                placeholder="Building Name"
+              />
+            </td>
+            <td>
+              <input
+                type="number"
+                value={newRoomRow.roomNumber}
+                onChange={(e) => setNewRoomRow({ ...newRoomRow, roomNumber: e.target.value })}
+                placeholder="Room Number"
+              />
+            </td>
+            <td>
+              <button onClick={handleRoomSubmit}>
+                {editRoomRow ? 'Update' : 'Add'}
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
       
@@ -385,3 +565,36 @@ export default function Dashboard({ user }) {
     </div>
   );
 }
+
+/**
+ * Validates if a student would be enrolled in two sections of the same course.
+ * @param {number} studentID - The ID of the student to validate.
+ * @param {number} newCourseID - The course ID of the section being added or updated.
+ * @returns {Promise<boolean>} - Resolves to true if the operation is valid, false otherwise.
+ */
+const validateStudentEnrollment = async (studentID, newCourseID) => {
+  try {
+    // Fetch all sections the student is currently enrolled in
+    const response = await fetch(`http://localhost:5000/students/section/${studentID}`);
+    const studentSections = await response.json();
+
+    // Extract course IDs for the sections the student is enrolled in
+    const courseIDs = await Promise.all(
+      studentSections.map(async (section) => {
+        const sectionResponse = await fetch(`http://localhost:5000/sections/${section.sectionID}`);
+        const sectionData = await sectionResponse.json();
+        return sectionData.courseID;
+      })
+    );
+
+    // Check if the new course ID already exists in the student's enrolled courses
+    if (courseIDs.includes(newCourseID)) {
+      return false; // Validation failed
+    }
+
+    return true; // Validation passed
+  } catch (error) {
+    console.error('Error validating student enrollment:', error);
+    return false; // Assume invalid if an error occurs
+  }
+};
