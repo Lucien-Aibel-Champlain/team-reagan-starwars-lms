@@ -327,7 +327,7 @@ export default function Dashboard({ user }) {
         <thead>
           <tr>
             <th>Name</th>
-            <th>Actions</th> {/* New Actions column */}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
