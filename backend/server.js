@@ -104,6 +104,444 @@ app.delete('/rooms/:id', (req, res) => {
   });
 });
 
+// CRUD Operations for Courselist (Sections)
+
+// Create a new course/section
+app.post('/courselist', (req, res) => {
+  const { coursePrefix, courseNumber, courseName, schedule, dates, room, instructor } = req.body;
+  db.run(
+    `INSERT INTO Sections (coursePrefix, courseNumber, courseName, schedule, dates, roomID, employeeID) 
+     VALUES (?, ?, ?, ?, ?, 
+       (SELECT roomID FROM Rooms WHERE buildingName || ' ' || roomNumber = ?), 
+       (SELECT employeeID FROM Employees WHERE firstName || ' ' || lastName = ?))`,
+    [coursePrefix, courseNumber, courseName, schedule, dates, room, instructor],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json({ id: this.lastID });
+      }
+    }
+  );
+});
+
+// Read all courses/sections
+app.get('/courselist', (req, res) => {
+  db.all(
+    `SELECT s.sectionID, s.coursePrefix, s.courseNumber, s.courseName, s.schedule, s.dates, 
+            r.buildingName || ' ' || r.roomNumber AS room, 
+            e.firstName || ' ' || e.lastName AS instructor 
+     FROM Sections AS s
+     LEFT JOIN Rooms AS r ON s.roomID = r.roomID
+     LEFT JOIN Employees AS e ON s.employeeID = e.employeeID`,
+    [],
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
+});
+
+// Update an existing course/section
+app.put('/courselist/:id', (req, res) => {
+  const { coursePrefix, courseNumber, courseName, schedule, dates, room, instructor } = req.body;
+  const sectionID = req.params.id;
+
+  db.run(
+    `UPDATE Sections 
+     SET coursePrefix = ?, courseNumber = ?, courseName = ?, schedule = ?, dates = ?, 
+         roomID = (SELECT roomID FROM Rooms WHERE buildingName || ' ' || roomNumber = ?), 
+         employeeID = (SELECT employeeID FROM Employees WHERE firstName || ' ' || lastName = ?) 
+     WHERE sectionID = ?`,
+    [coursePrefix, courseNumber, courseName, schedule, dates, room, instructor, sectionID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Section not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// Delete a course/section
+app.delete('/courselist/:id', (req, res) => {
+  const sectionID = req.params.id;
+
+  db.run('DELETE FROM Sections WHERE sectionID = ?', [sectionID], function (err) {
+    if (err) {
+      res.status(500).json({ error: 'Database error' });
+    } else if (this.changes === 0) {
+      res.status(404).json({ error: 'Section not found' });
+    } else {
+      res.json({ changes: this.changes });
+    }
+  });
+});
+
+// CRUD Operations for Materials
+
+// Create a new material
+app.post('/materials', (req, res) => {
+  const { materialName, materialDescription, typeID, maxPoints, fileName } = req.body;
+  db.run(
+    `INSERT INTO Materials (materialName, materialDescription, typeID, maxPoints, fileName) 
+     VALUES (?, ?, ?, ?, ?)`,
+    [materialName, materialDescription, typeID, maxPoints, fileName],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json({ id: this.lastID });
+      }
+    }
+  );
+});
+
+// Read all materials
+app.get('/materials', (req, res) => {
+  db.all(
+    `SELECT materialID, materialName, materialDescription, Materials.typeID, typeName, maxPoints, fileName 
+     FROM Materials 
+     LEFT JOIN Types ON Materials.typeID = Types.typeID`,
+    [],
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
+});
+
+// Update an existing material
+app.put('/materials/:id', (req, res) => {
+  const { materialName, materialDescription, typeID, maxPoints, fileName } = req.body;
+  const materialID = req.params.id;
+
+  db.run(
+    `UPDATE Materials 
+     SET materialName = ?, materialDescription = ?, typeID = ?, maxPoints = ?, fileName = ? 
+     WHERE materialID = ?`,
+    [materialName, materialDescription, typeID, maxPoints, fileName, materialID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Material not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// Delete a material
+app.delete('/materials/:id', (req, res) => {
+  const materialID = req.params.id;
+
+  db.run('DELETE FROM Materials WHERE materialID = ?', [materialID], function (err) {
+    if (err) {
+      res.status(500).json({ error: 'Database error' });
+    } else if (this.changes === 0) {
+      res.status(404).json({ error: 'Material not found' });
+    } else {
+      res.json({ changes: this.changes });
+    }
+  });
+});
+
+// CRUD Operations for Types
+
+// Create a new type
+app.post('/types', (req, res) => {
+  const { typeName, typeDescription } = req.body;
+  db.run(
+    `INSERT INTO Types (typeName, typeDescription) 
+     VALUES (?, ?)`,
+    [typeName, typeDescription],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json({ id: this.lastID });
+      }
+    }
+  );
+});
+
+// Read all types
+app.get('/types', (req, res) => {
+  db.all(
+    `SELECT typeID, typeName, typeDescription 
+     FROM Types`,
+    [],
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
+});
+
+// Update an existing type
+app.put('/types/:id', (req, res) => {
+  const { typeName, typeDescription } = req.body;
+  const typeID = req.params.id;
+
+  db.run(
+    `UPDATE Types 
+     SET typeName = ?, typeDescription = ? 
+     WHERE typeID = ?`,
+    [typeName, typeDescription, typeID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Type not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// Delete a type
+app.delete('/types/:id', (req, res) => {
+  const typeID = req.params.id;
+
+  db.run('DELETE FROM Types WHERE typeID = ?', [typeID], function (err) {
+    if (err) {
+      res.status(500).json({ error: 'Database error' });
+    } else if (this.changes === 0) {
+      res.status(404).json({ error: 'Type not found' });
+    } else {
+      res.json({ changes: this.changes });
+    }
+  });
+});
+
+// CRUD Operations for Grades
+
+// Create a new grade
+app.post('/grades', (req, res) => {
+  const { grade, comments, studentID, materialID } = req.body;
+  db.run(
+    `INSERT INTO Grades (grade, comments, studentID, materialID) 
+     VALUES (?, ?, ?, ?)`,
+    [grade, comments, studentID, materialID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json({ id: this.lastID });
+      }
+    }
+  );
+});
+
+// Read all grades
+app.get('/grades', (req, res) => {
+  db.all(
+    `SELECT Grades.materialID, Grades.studentID, grade, comments, materialName, maxPoints, 
+            Students.firstName, Students.lastName 
+     FROM Grades 
+     LEFT JOIN Materials ON Grades.materialID = Materials.materialID 
+     LEFT JOIN Students ON Grades.studentID = Students.studentID`,
+    [],
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
+});
+
+// Update an existing grade
+app.put('/grades/:studentID/:materialID', (req, res) => {
+  const { grade, comments } = req.body;
+  const { studentID, materialID } = req.params;
+
+  db.run(
+    `UPDATE Grades 
+     SET grade = ?, comments = ? 
+     WHERE studentID = ? AND materialID = ?`,
+    [grade, comments, studentID, materialID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Grade not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// Delete a grade
+app.delete('/grades/:studentID/:materialID', (req, res) => {
+  const { studentID, materialID } = req.params;
+
+  db.run(
+    `DELETE FROM Grades 
+     WHERE studentID = ? AND materialID = ?`,
+    [studentID, materialID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Grade not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// CRUD Operations for Students
+
+// Create a new student
+app.post('/students', (req, res) => {
+  const { firstName, lastName, email, graduationYear, majorIDs } = req.body;
+
+  db.run(
+    `INSERT INTO Students (firstName, lastName, email, graduationYear) 
+     VALUES (?, ?, ?, ?)`,
+    [firstName, lastName, email, graduationYear],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        const studentID = this.lastID;
+
+        // Insert into StudentMajors table for each majorID
+        const majorInsertPromises = majorIDs.map((majorID) =>
+          new Promise((resolve, reject) => {
+            db.run(
+              `INSERT INTO StudentMajors (studentID, majorID) VALUES (?, ?)`,
+              [studentID, majorID],
+              (err) => {
+                if (err) reject(err);
+                else resolve();
+              }
+            );
+          })
+        );
+
+        Promise.all(majorInsertPromises)
+          .then(() => res.json({ id: studentID }))
+          .catch(() => res.status(500).json({ error: 'Database error while inserting majors' }));
+      }
+    }
+  );
+});
+
+// Read all students
+app.get('/students', (req, res) => {
+  db.all(
+    `SELECT Students.studentID, firstName, lastName, email, graduationYear 
+     FROM Students`,
+    [],
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
+});
+
+// Update an existing student
+app.put('/students/:id', (req, res) => {
+  const { firstName, lastName, email, graduationYear, majorIDs } = req.body;
+  const studentID = req.params.id;
+
+  db.run(
+    `UPDATE Students 
+     SET firstName = ?, lastName = ?, email = ?, graduationYear = ? 
+     WHERE studentID = ?`,
+    [firstName, lastName, email, graduationYear, studentID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Student not found' });
+      } else {
+        // Clear existing majors for the student
+        db.run(
+          `DELETE FROM StudentMajors WHERE studentID = ?`,
+          [studentID],
+          (err) => {
+            if (err) {
+              res.status(500).json({ error: 'Database error while clearing majors' });
+            } else {
+              // Insert updated majors
+              const majorInsertPromises = majorIDs.map((majorID) =>
+                new Promise((resolve, reject) => {
+                  db.run(
+                    `INSERT INTO StudentMajors (studentID, majorID) VALUES (?, ?)`,
+                    [studentID, majorID],
+                    (err) => {
+                      if (err) reject(err);
+                      else resolve();
+                    }
+                  );
+                })
+              );
+
+              Promise.all(majorInsertPromises)
+                .then(() => res.json({ changes: this.changes }))
+                .catch(() => res.status(500).json({ error: 'Database error while inserting majors' }));
+            }
+          }
+        );
+      }
+    }
+  );
+});
+
+// Delete a student
+app.delete('/students/:id', (req, res) => {
+  const studentID = req.params.id;
+
+  db.run(
+    `DELETE FROM Students WHERE studentID = ?`,
+    [studentID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Student not found' });
+      } else {
+        // Clear associated majors
+        db.run(
+          `DELETE FROM StudentMajors WHERE studentID = ?`,
+          [studentID],
+          (err) => {
+            if (err) {
+              res.status(500).json({ error: 'Database error while clearing majors' });
+            } else {
+              res.json({ changes: this.changes });
+            }
+          }
+        );
+      }
+    }
+  );
+});
+
 //Handle all get requests
 
 app.get('/sections', (req, res) => {

@@ -273,8 +273,31 @@ export default function Dashboard({ user }) {
   };
 
   const [editCourseRow, setEditCourseRow] = useState(null);
-  const [newCourseRow, setNewCourseRow] = useState({ coursePrefix: '', courseNumber: '', courseName: '' });
+  const [newCourseRow, setNewCourseRow] = useState({
+    coursePrefix: '',
+    courseNumber: '',
+    courseName: '',
+    schedule: '',
+    dates: '',
+    room: '',
+    instructor: '',
+  });
 
+  // Handle Edit
+  const handleCourseEdit = (row) => {
+    setEditCourseRow(row);
+    setNewCourseRow({
+      coursePrefix: row.coursePrefix,
+      courseNumber: row.courseNumber,
+      courseName: row.courseName,
+      schedule: row.schedule,
+      dates: row.dates,
+      room: row.room,
+      instructor: row.instructor,
+    });
+  };
+
+  // Handle Delete
   const handleCourseDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
       fetch(`http://localhost:5000/courselist/${id}`, { method: 'DELETE' })
@@ -283,15 +306,16 @@ export default function Dashboard({ user }) {
     }
   };
 
+  // Handle Submit (Insert or Update)
   const handleCourseSubmit = () => {
     if (window.confirm('Are you sure you want to submit this course?')) {
       const method = editCourseRow ? 'PUT' : 'POST';
       const url = editCourseRow
-        ? `http://localhost:5000/courselist/${editCourseRow.courseID}`
+        ? `http://localhost:5000/courselist/${editCourseRow.sectionID}`
         : 'http://localhost:5000/courselist';
 
       const payload = editCourseRow
-        ? { ...newCourseRow, courseID: editCourseRow.courseID }
+        ? { ...newCourseRow, sectionID: editCourseRow.sectionID }
         : newCourseRow;
 
       fetch(url, {
@@ -302,15 +326,255 @@ export default function Dashboard({ user }) {
         .then((res) => res.json())
         .then(() => {
           setEditCourseRow(null);
-          setNewCourseRow({ coursePrefix: '', courseNumber: '', courseName: '' });
+          setNewCourseRow({
+            coursePrefix: '',
+            courseNumber: '',
+            courseName: '',
+            schedule: '',
+            dates: '',
+            room: '',
+            instructor: '',
+          });
           fetchData();
         });
     }
   };
 
-  const handleCourseEdit = (row) => {
-    setEditCourseRow(row);
-    setNewCourseRow({ coursePrefix: row.coursePrefix, courseNumber: row.courseNumber, courseName: row.courseName });
+  const [editMaterialRow, setEditMaterialRow] = useState(null); // Tracks the row being edited for Materials
+  const [newMaterialRow, setNewMaterialRow] = useState({
+    materialName: '',
+    materialDescription: '',
+    typeID: '',
+    maxPoints: '',
+    fileName: '',
+  });
+
+  // Handle Edit for Materials
+  const handleMaterialEdit = (row) => {
+    setEditMaterialRow(row);
+    setNewMaterialRow({
+      materialName: row.materialName,
+      materialDescription: row.materialDescription,
+      typeID: row.typeID,
+      maxPoints: row.maxPoints,
+      fileName: row.fileName,
+    });
+  };
+
+  // Handle Delete for Materials
+  const handleMaterialDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this material?')) {
+      fetch(`http://localhost:5000/materials/${id}`, { method: 'DELETE' })
+        .then((res) => res.json())
+        .then(() => fetchData()); // Refresh the table
+    }
+  };
+
+  // Handle Submit (Insert or Update) for Materials
+  const handleMaterialSubmit = () => {
+    if (window.confirm('Are you sure you want to submit this material?')) {
+      const method = editMaterialRow ? 'PUT' : 'POST';
+      const url = editMaterialRow
+        ? `http://localhost:5000/materials/${editMaterialRow.materialID}`
+        : 'http://localhost:5000/materials';
+
+      const payload = editMaterialRow
+        ? { ...newMaterialRow, materialID: editMaterialRow.materialID }
+        : newMaterialRow;
+
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          setEditMaterialRow(null); // Clear edit state
+          setNewMaterialRow({
+            materialName: '',
+            materialDescription: '',
+            typeID: '',
+            maxPoints: '',
+            fileName: '',
+          }); // Clear input fields
+          fetchData(); // Refresh the table
+        });
+    }
+  };
+
+  const [editTypeRow, setEditTypeRow] = useState(null); // Tracks the row being edited for Types
+  const [newTypeRow, setNewTypeRow] = useState({
+    typeName: '',
+    typeDescription: '',
+  });
+
+  // Handle Edit for Types
+  const handleTypeEdit = (row) => {
+    setEditTypeRow(row);
+    setNewTypeRow({
+      typeName: row.typeName,
+      typeDescription: row.typeDescription,
+    });
+  };
+
+  // Handle Delete for Types
+  const handleTypeDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this type?')) {
+      fetch(`http://localhost:5000/types/${id}`, { method: 'DELETE' })
+        .then((res) => res.json())
+        .then(() => fetchData()); // Refresh the table
+    }
+  };
+
+  // Handle Submit (Insert or Update) for Types
+  const handleTypeSubmit = () => {
+    if (window.confirm('Are you sure you want to submit this type?')) {
+      const method = editTypeRow ? 'PUT' : 'POST';
+      const url = editTypeRow
+        ? `http://localhost:5000/types/${editTypeRow.typeID}`
+        : 'http://localhost:5000/types';
+
+      const payload = editTypeRow
+        ? { ...newTypeRow, typeID: editTypeRow.typeID }
+        : newTypeRow;
+
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          setEditTypeRow(null); // Clear edit state
+          setNewTypeRow({
+            typeName: '',
+            typeDescription: '',
+          }); // Clear input fields
+          fetchData(); // Refresh the table
+        });
+    }
+  };
+
+  const [editGradeRow, setEditGradeRow] = useState(null); // Tracks the row being edited for Grades
+  const [newGradeRow, setNewGradeRow] = useState({
+    grade: '',
+    comments: '',
+    studentID: '',
+    materialID: '',
+  });
+
+  // Handle Edit for Grades
+  const handleGradeEdit = (row) => {
+    setEditGradeRow(row);
+    setNewGradeRow({
+      grade: row.grade,
+      comments: row.comments,
+      studentID: row.studentID,
+      materialID: row.materialID,
+    });
+  };
+
+  // Handle Delete for Grades
+  const handleGradeDelete = (studentID, materialID) => {
+    if (window.confirm('Are you sure you want to delete this grade?')) {
+      fetch(`http://localhost:5000/grades/${studentID}/${materialID}`, { method: 'DELETE' })
+        .then((res) => res.json())
+        .then(() => fetchData()); // Refresh the table
+    }
+  };
+
+  // Handle Submit (Insert or Update) for Grades
+  const handleGradeSubmit = () => {
+    if (window.confirm('Are you sure you want to submit this grade?')) {
+      const method = editGradeRow ? 'PUT' : 'POST';
+      const url = editGradeRow
+        ? `http://localhost:5000/grades/${editGradeRow.studentID}/${editGradeRow.materialID}`
+        : 'http://localhost:5000/grades';
+
+      const payload = editGradeRow
+        ? { ...newGradeRow, studentID: editGradeRow.studentID, materialID: editGradeRow.materialID }
+        : newGradeRow;
+
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          setEditGradeRow(null); // Clear edit state
+          setNewGradeRow({
+            grade: '',
+            comments: '',
+            studentID: '',
+            materialID: '',
+          }); // Clear input fields
+          fetchData(); // Refresh the table
+        });
+    }
+  };
+
+  const [editStudentRow, setEditStudentRow] = useState(null); // Tracks the row being edited for Students
+  const [newStudentRow, setNewStudentRow] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    graduationYear: '',
+    majorIDs: [],
+  });
+
+  // Handle Edit for Students
+  const handleStudentEdit = (row) => {
+    setEditStudentRow(row);
+    setNewStudentRow({
+      firstName: row.firstName,
+      lastName: row.lastName,
+      email: row.email,
+      graduationYear: row.graduationYear,
+      majorIDs: row.majors.map((major) => major.majorID), // Extract major IDs
+    });
+  };
+
+  // Handle Delete for Students
+  const handleStudentDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this student?')) {
+      fetch(`http://localhost:5000/students/${id}`, { method: 'DELETE' })
+        .then((res) => res.json())
+        .then(() => fetchData()); // Refresh the table
+    }
+  };
+
+  // Handle Submit (Insert or Update) for Students
+  const handleStudentSubmit = () => {
+    if (window.confirm('Are you sure you want to submit this student?')) {
+      const method = editStudentRow ? 'PUT' : 'POST';
+      const url = editStudentRow
+        ? `http://localhost:5000/students/${editStudentRow.studentID}`
+        : 'http://localhost:5000/students';
+
+      const payload = {
+        ...newStudentRow,
+        majorIDs: newStudentRow.majorIDs, // Include major IDs
+      };
+
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          setEditStudentRow(null); // Clear edit state
+          setNewStudentRow({
+            firstName: '',
+            lastName: '',
+            email: '',
+            graduationYear: '',
+            majorIDs: [],
+          }); // Clear input fields
+          fetchData(); // Refresh the table
+        });
+    }
   };
 
   return (
@@ -461,19 +725,80 @@ export default function Dashboard({ user }) {
             <th>Dates</th>
             <th>Room</th>
             <th>Instructor</th>
+            <th>Actions</th> {/* New Actions column */}
           </tr>
         </thead>
         <tbody>
-          {sections.map(sec => (
-            <tr key={sec.sectionID} onClick={() => {setSelectedSection(sec.sectionID)}} style={[defaultRow, selectedRow][+(selectedSection==sec.sectionID)]}>
+          {sections.map((sec) => (
+            <tr key={sec.sectionID}>
               <td>{sec.coursePrefix + "-" + sec.courseNumber + "-" + sec.sectionNumber}</td>
               <td>{sec.courseName}</td>
               <td>{sec.startTime + "-" + sec.endTime + " " + sec.weekDays}</td>
               <td>{sec.startDate + " - " + sec.endDate}</td>
               <td>{sec.buildingName + " " + sec.roomNumber}</td>
               <td>{sec.lastName + ", " + sec.firstName}</td>
+              <td>
+                <button onClick={() => handleCourseEdit(sec)}>Edit</button>
+                <button onClick={() => handleCourseDelete(sec.sectionID)}>Delete</button>
+              </td>
             </tr>
           ))}
+          {/* Insert/Edit Row */}
+          <tr>
+            <td>
+              <input
+                type="text"
+                value={newCourseRow.coursePrefix}
+                onChange={(e) => setNewCourseRow({ ...newCourseRow, coursePrefix: e.target.value })}
+                placeholder="Prefix"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newCourseRow.courseName}
+                onChange={(e) => setNewCourseRow({ ...newCourseRow, courseName: e.target.value })}
+                placeholder="Course Name"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newCourseRow.schedule}
+                onChange={(e) => setNewCourseRow({ ...newCourseRow, schedule: e.target.value })}
+                placeholder="Schedule"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newCourseRow.dates}
+                onChange={(e) => setNewCourseRow({ ...newCourseRow, dates: e.target.value })}
+                placeholder="Dates"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newCourseRow.room}
+                onChange={(e) => setNewCourseRow({ ...newCourseRow, room: e.target.value })}
+                placeholder="Room"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newCourseRow.instructor}
+                onChange={(e) => setNewCourseRow({ ...newCourseRow, instructor: e.target.value })}
+                placeholder="Instructor"
+              />
+            </td>
+            <td>
+              <button onClick={handleCourseSubmit}>
+                {editCourseRow ? 'Update' : 'Add'}
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
       
@@ -486,6 +811,7 @@ export default function Dashboard({ user }) {
             <th>Type</th>
             <th>Points Worth</th>
             <th>File</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -496,27 +822,107 @@ export default function Dashboard({ user }) {
               <td>{mat.typeName}</td>
               <td>{mat.maxPoints}</td>
               <td><button onClick={() => downloadFile('http://localhost:5000/material/file/' + mat.materialID, mat.fileName)}>Download</button></td>
+              <td>
+                <button onClick={() => handleMaterialEdit(mat)}>Edit</button>
+                <button onClick={() => handleMaterialDelete(mat.materialID)}>Delete</button>
+              </td>
             </tr>
           ))}
+          {/* Insert/Edit Row */}
+          <tr>
+            <td>
+              <input
+                type="text"
+                value={newMaterialRow.materialName}
+                onChange={(e) => setNewMaterialRow({ ...newMaterialRow, materialName: e.target.value })}
+                placeholder="Material Name"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newMaterialRow.materialDescription}
+                onChange={(e) => setNewMaterialRow({ ...newMaterialRow, materialDescription: e.target.value })}
+                placeholder="Material Description"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newMaterialRow.typeID}
+                onChange={(e) => setNewMaterialRow({ ...newMaterialRow, typeID: e.target.value })}
+                placeholder="Type ID"
+              />
+            </td>
+            <td>
+              <input
+                type="number"
+                value={newMaterialRow.maxPoints}
+                onChange={(e) => setNewMaterialRow({ ...newMaterialRow, maxPoints: e.target.value })}
+                placeholder="Max Points"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newMaterialRow.fileName}
+                onChange={(e) => setNewMaterialRow({ ...newMaterialRow, fileName: e.target.value })}
+                placeholder="File Name"
+              />
+            </td>
+            <td>
+              <button onClick={handleMaterialSubmit}>
+                {editMaterialRow ? 'Update' : 'Add'}
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
       
       <h2>Types</h2>
       <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
-
         <thead>
           <tr>
             <th>Name</th>
             <th>Description</th>
+            <th>Actions</th> {/* New Actions column */}
           </tr>
         </thead>
         <tbody>
-          {types.map(type => (
+          {types.map((type) => (
             <tr key={type.typeID}>
               <td>{type.typeName}</td>
               <td>{type.typeDescription}</td>
+              <td>
+                <button onClick={() => handleTypeEdit(type)}>Edit</button>
+                <button onClick={() => handleTypeDelete(type.typeID)}>Delete</button>
+              </td>
             </tr>
           ))}
+          {/* Insert/Edit Row */}
+          <tr>
+            <td>
+              <input
+                type="text"
+                value={newTypeRow.typeName}
+                onChange={(e) => setNewTypeRow({ ...newTypeRow, typeName: e.target.value })}
+                placeholder="Type Name"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newTypeRow.typeDescription}
+                onChange={(e) => setNewTypeRow({ ...newTypeRow, typeDescription: e.target.value })}
+                placeholder="Type Description"
+              />
+            </td>
+            <td>
+              <button onClick={handleTypeSubmit}>
+                {editTypeRow ? 'Update' : 'Add'}
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
       
@@ -528,16 +934,73 @@ export default function Dashboard({ user }) {
             <th>Grade</th>
             <th>Comment</th>
             <th>Student</th>
+            <th>Material</th>
+            <th>Actions</th> {/* New Actions column */}
           </tr>
         </thead>
         <tbody>
-          {grades.map(grade => (
-            <tr key={grade.materialID, grade.studentID}>
-              <td>{grade.grade + "/" + grade.maxPoints + " (" + gradePercent(grade.grade, grade.maxPoints) + "%)"}</td>
+          {grades.map((grade) => (
+            <tr key={`${grade.studentID}-${grade.materialID}`}>
+              <td>{`${grade.grade}/${grade.maxPoints} (${gradePercent(grade.grade, grade.maxPoints)}%)`}</td>
               <td>{grade.comments}</td>
-              <td>{grade.lastName + ", " + grade.firstName}</td>
+              <td>{`${grade.lastName}, ${grade.firstName}`}</td>
+              <td>{grade.materialName}</td>
+              <td>
+                <button onClick={() => handleGradeEdit(grade)}>Edit</button>
+                <button onClick={() => handleGradeDelete(grade.studentID, grade.materialID)}>Delete</button>
+              </td>
             </tr>
           ))}
+          {/* Insert/Edit Row */}
+          <tr>
+            <td>
+              <input
+                type="number"
+                value={newGradeRow.grade}
+                onChange={(e) => setNewGradeRow({ ...newGradeRow, grade: e.target.value })}
+                placeholder="Grade"
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={newGradeRow.comments}
+                onChange={(e) => setNewGradeRow({ ...newGradeRow, comments: e.target.value })}
+                placeholder="Comments"
+              />
+            </td>
+            <td>
+              <select
+                value={newGradeRow.studentID}
+                onChange={(e) => setNewGradeRow({ ...newGradeRow, studentID: e.target.value })}
+              >
+                <option value="">Select Student</option>
+                {students.map((student) => (
+                  <option key={student.studentID} value={student.studentID}>
+                    {`${student.lastName}, ${student.firstName}`}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td>
+              <select
+                value={newGradeRow.materialID}
+                onChange={(e) => setNewGradeRow({ ...newGradeRow, materialID: e.target.value })}
+              >
+                <option value="">Select Material</option>
+                {materials.map((material) => (
+                  <option key={material.materialID} value={material.materialID}>
+                    {material.materialName}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td>
+              <button onClick={handleGradeSubmit}>
+                {editGradeRow ? 'Update' : 'Add'}
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
       
@@ -549,17 +1012,80 @@ export default function Dashboard({ user }) {
             <th>Email</th>
             <th>Major</th>
             <th>Graduation Year</th>
+            <th>Actions</th> {/* New Actions column */}
           </tr>
         </thead>
         <tbody>
-          {students.map(student => (
+          {students.map((student) => (
             <tr key={student.studentID}>
-              <td>{student.lastName + ", " + student.firstName}</td>
-              <td><a href={"mailto:" + student.email}>{student.email}</a></td>
+              <td>{`${student.lastName}, ${student.firstName}`}</td>
+              <td>
+                <a href={`mailto:${student.email}`}>{student.email}</a>
+              </td>
               <td>{stringMajors(student.studentID)}</td>
               <td>{student.graduationYear}</td>
+              <td>
+                <button onClick={() => handleStudentEdit(student)}>Edit</button>
+                <button onClick={() => handleStudentDelete(student.studentID)}>Delete</button>
+              </td>
             </tr>
           ))}
+          {/* Insert/Edit Row */}
+          <tr>
+            <td>
+              <input
+                type="text"
+                value={newStudentRow.firstName}
+                onChange={(e) => setNewStudentRow({ ...newStudentRow, firstName: e.target.value })}
+                placeholder="First Name"
+              />
+              <input
+                type="text"
+                value={newStudentRow.lastName}
+                onChange={(e) => setNewStudentRow({ ...newStudentRow, lastName: e.target.value })}
+                placeholder="Last Name"
+              />
+            </td>
+            <td>
+              <input
+                type="email"
+                value={newStudentRow.email}
+                onChange={(e) => setNewStudentRow({ ...newStudentRow, email: e.target.value })}
+                placeholder="Email"
+              />
+            </td>
+            <td>
+              <select
+                multiple
+                value={newStudentRow.majorIDs}
+                onChange={(e) =>
+                  setNewStudentRow({
+                    ...newStudentRow,
+                    majorIDs: Array.from(e.target.selectedOptions, (option) => option.value),
+                  })
+                }
+              >
+                {majors.map((major) => (
+                  <option key={major.majorID} value={major.majorID}>
+                    {major.majorName}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td>
+              <input
+                type="number"
+                value={newStudentRow.graduationYear}
+                onChange={(e) => setNewStudentRow({ ...newStudentRow, graduationYear: e.target.value })}
+                placeholder="Graduation Year"
+              />
+            </td>
+            <td>
+              <button onClick={handleStudentSubmit}>
+                {editStudentRow ? 'Update' : 'Add'}
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
