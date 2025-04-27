@@ -102,6 +102,7 @@ export default function Dashboard({ user }) {
     }
     Promise.all(promiseArray).then(results => { let newDict = {}; for (let element of results) {
             newDict[element[0]] = element[1]
+            console.log(element)
         };
         setStudentMajors(newDict);
         })
@@ -388,8 +389,8 @@ export default function Dashboard({ user }) {
         : 'http://localhost:5000/materials';
 
       const payload = editMaterialRow
-        ? { ...newMaterialRow, materialID: editMaterialRow.materialID }
-        : newMaterialRow;
+        ? { ...newMaterialRow, materialID: editMaterialRow.materialID, sectionID: selectedSection }
+        : {...newMaterialRow, sectionID: selectedSection};
 
       fetch(url, {
         method,
@@ -468,8 +469,7 @@ export default function Dashboard({ user }) {
   const [newGradeRow, setNewGradeRow] = useState({
     grade: '',
     comments: '',
-    studentID: '',
-    materialID: '',
+    studentID: ''
   });
 
   // Handle Edit for Grades
@@ -478,8 +478,7 @@ export default function Dashboard({ user }) {
     setNewGradeRow({
       grade: row.grade,
       comments: row.comments,
-      studentID: row.studentID,
-      materialID: row.materialID,
+      studentID: row.studentID
     });
   };
 
@@ -501,8 +500,8 @@ export default function Dashboard({ user }) {
         : 'http://localhost:5000/grades';
 
       const payload = editGradeRow
-        ? { ...newGradeRow, studentID: editGradeRow.studentID, materialID: editGradeRow.materialID }
-        : newGradeRow;
+        ? { ...newGradeRow, studentID: editGradeRow.studentID, materialID: selectedMaterial }
+        : {...newGradeRow, studentID: newGradeRow.studentID, materialID: selectedMaterial };
 
       fetch(url, {
         method,
@@ -515,8 +514,7 @@ export default function Dashboard({ user }) {
           setNewGradeRow({
             grade: '',
             comments: '',
-            studentID: '',
-            materialID: '',
+            studentID: ''
           }); // Clear input fields
           fetchData(); // Refresh the table
         });
@@ -542,6 +540,7 @@ export default function Dashboard({ user }) {
       graduationYear: row.graduationYear,
       majorIDs: studentMajors[row.studentID].map((major) => major.majorID), // Extract major IDs
     });
+    console.log(newStudentRow)
   };
 
   // Handle Delete for Students
@@ -780,10 +779,13 @@ const handleSectionSubmit = () => {
   const payload = editSectionRow
     ? { ...newSectionRow, sectionID: editSectionRow.sectionID }
     : newSectionRow;
+    
+  //validation
   if (!isTime(payload.startTime)) { alert("Start Time is invalid format."); return }
   if (!isTime(payload.endTime)) { alert("End Time is invalid format."); return }
   if (!isDate(payload.startDate)) { alert("Start Date is invalid format."); return }
   if (!isDate(payload.endDate)) { alert("End Date is invalid format."); return }
+  
   if (window.confirm('Are you sure you want to submit this section?')) {
     const method = editSectionRow ? 'PUT' : 'POST';
     const url = editSectionRow
@@ -813,6 +815,26 @@ const handleSectionSubmit = () => {
       });
   }
 };
+
+  const removeMaterialFromSection = (materialID, sectionID) => {
+        fetch('http://localhost:5000/materials/section', {
+          method: "DELETE",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({materialID, sectionID}),
+        })
+          .then((res) => {if (res.status != 200) res.json().then(res => alert(res["error"]))})
+          .then(fetchData())
+  }
+  
+  const addMaterialToSection = (materialID, sectionID) => {
+        fetch('http://localhost:5000/materials/section', {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({materialID, sectionID}),
+        })
+          .then((res) => res.json())
+          .then(fetchData())
+  }
 
   return (
     <div>
@@ -1272,10 +1294,22 @@ const handleSectionSubmit = () => {
               <td>{mat.materialDescription}</td>
               <td>{mat.typeName}</td>
               <td>{mat.maxPoints}</td>
-              <td><button onClick={() => downloadFile('http://localhost:5000/material/file/' + mat.materialID, mat.fileName)}>Download</button></td>
+              <td>{mat.fileName != "" ? <button onClick={() => downloadFile('http://localhost:5000/material/file/' + mat.materialID, mat.fileName)}>Download</button> : ""}</td>
               <td>
                 <button onClick={() => handleMaterialEdit(mat)}>Edit</button>
                 <button onClick={() => handleMaterialDelete(mat.materialID)}>Delete</button>
+                <button onClick={() => removeMaterialFromSection(mat.materialID, selectedSection)}>Remove</button>
+                
+                <select
+                    onChange={(e) => {addMaterialToSection(mat.materialID, e.target.value); e.target.value = ""}}
+                  >
+                    <option value="">Add to Section</option>
+                    {sections.map((sec) => (
+                      <option key={sec.sectionID} value={sec.sectionID}>
+                        {sec.coursePrefix + "-" + sec.courseNumber + "-" + sec.sectionNumber}
+                      </option>
+                    ))}
+                </select>
               </td>
             </tr>
           ))}
@@ -1319,12 +1353,7 @@ const handleSectionSubmit = () => {
               />
             </td>
             <td>
-              <input
-                type="text"
-                value={newMaterialRow.fileName}
-                onChange={(e) => setNewMaterialRow({ ...newMaterialRow, fileName: e.target.value })}
-                placeholder="File Name"
-              />
+            
             </td>
             <td>
               <button onClick={handleMaterialSubmit}>
@@ -1390,7 +1419,6 @@ const handleSectionSubmit = () => {
             <th>Grade</th>
             <th>Comment</th>
             <th>Student</th>
-            <th>Material</th>
             <th>Actions</th> {/* New Actions column */}
           </tr>
         </thead>
@@ -1400,7 +1428,6 @@ const handleSectionSubmit = () => {
               <td>{`${grade.grade}/${grade.maxPoints} (${gradePercent(grade.grade, grade.maxPoints)}%)`}</td>
               <td>{grade.comments}</td>
               <td>{`${grade.lastName}, ${grade.firstName}`}</td>
-              <td>{grade.materialName}</td>
               <td>
                 <button onClick={() => handleGradeEdit(grade)}>Edit</button>
                 <button onClick={() => handleGradeDelete(grade.studentID, grade.materialID)}>Delete</button>
@@ -1416,6 +1443,10 @@ const handleSectionSubmit = () => {
                 onChange={(e) => setNewGradeRow({ ...newGradeRow, grade: e.target.value })}
                 placeholder="Grade"
               />
+              <span>/{
+                (materials[propertyExists(selectedMaterial, "materialID", materials)] != undefined) ? materials[propertyExists(selectedMaterial, "materialID", materials)].maxPoints : ""
+                }
+              </span>
             </td>
             <td>
               <input
@@ -1434,19 +1465,6 @@ const handleSectionSubmit = () => {
                 {students.map((student) => (
                   <option key={student.studentID} value={student.studentID}>
                     {`${student.lastName}, ${student.firstName}`}
-                  </option>
-                ))}
-              </select>
-            </td>
-            <td>
-              <select
-                value={newGradeRow.materialID}
-                onChange={(e) => setNewGradeRow({ ...newGradeRow, materialID: e.target.value })}
-              >
-                <option value="">Select Material</option>
-                {materials.map((material) => (
-                  <option key={material.materialID} value={material.materialID}>
-                    {material.materialName}
                   </option>
                 ))}
               </select>
@@ -1545,6 +1563,7 @@ const handleSectionSubmit = () => {
                 placeholder="Graduation Year"
               />
             </td>
+            <td></td>
             <td>
               <button onClick={handleStudentSubmit}>
                 {editStudentRow ? 'Update' : 'Add'}
