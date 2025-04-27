@@ -35,9 +35,16 @@ export default function Dashboard({ user }) {
     fetch('http://localhost:5000/rooms')
       .then(res => res.json())
       .then(setRooms);
-    fetch('http://localhost:5000/sections')
-      .then(res => res.json())
-      .then(setSections)
+    if (user.adminBool) {
+        fetch('http://localhost:5000/sections')
+          .then(res => res.json())
+          .then(setSections)
+    }  
+    else {
+      fetch('http://localhost:5000/sections/employee/' + user.employeeID)
+	    .then(res => res.json())
+	    .then(setSections);
+	}
     fetch('http://localhost:5000/employees')
       .then(res => res.json())
       .then(setEmployees);
@@ -151,25 +158,11 @@ export default function Dashboard({ user }) {
         mutator(0)
     }
   }
-  
-    //filter sections to only include those accessable to user 
-  const filterSections = (userID) => {
-	  if (userID){
-		  fetch('http://localhost:5000/sections/employee/' + userID)
-			.then(res => res.json())
-			.then(setSections);
-		}
-  };
-  
 
   //fetch initial data only when starting (remove the [] to do on every render, or add a variable to do so when that variable changes)
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    filterSections(user.employeeID);
-  });
 
   //when sections or materials change, select one if possible
   useEffect(() => {
