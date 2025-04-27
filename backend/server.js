@@ -323,7 +323,7 @@ app.delete('/materials/:id', (req, res) => {
     } else {
       res.json({ changes: this.changes });
     }
-  });
+  );
 });
 
 // CRUD Operations for Types
@@ -395,7 +395,7 @@ app.delete('/types/:id', (req, res) => {
     } else {
       res.json({ changes: this.changes });
     }
-  });
+  );
 });
 
 // CRUD Operations for Grades
@@ -695,6 +695,176 @@ app.delete('/roles/:id', (req, res) => {
   );
 });
 
+// --- CRUD Operations for Courses ---
+
+// Create a new course
+app.post('/courses', (req, res) => {
+  const { coursePrefix, courseNumber, courseName } = req.body;
+
+  if (!coursePrefix || !courseNumber || !courseName) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  db.run(
+    `INSERT INTO Courses (coursePrefix, courseNumber, courseName) 
+     VALUES (?, ?, ?)`,
+    [coursePrefix, courseNumber, courseName],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json({ id: this.lastID });
+      }
+    }
+  );
+});
+
+// Read all courses
+app.get('/courses', (req, res) => {
+  db.all(
+    `SELECT courseID, coursePrefix, courseNumber, courseName 
+     FROM Courses`,
+    [],
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
+});
+
+// Update an existing course
+app.put('/courses/:id', (req, res) => {
+  const { coursePrefix, courseNumber, courseName } = req.body;
+  const courseID = req.params.id;
+
+  if (!coursePrefix || !courseNumber || !courseName) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  db.run(
+    `UPDATE Courses 
+     SET coursePrefix = ?, courseNumber = ?, courseName = ? 
+     WHERE courseID = ?`,
+    [coursePrefix, courseNumber, courseName, courseID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Course not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// Delete a course
+app.delete('/courses/:id', (req, res) => {
+  const courseID = req.params.id;
+
+  db.run(
+    `DELETE FROM Courses WHERE courseID = ?`,
+    [courseID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Course not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// --- CRUD Operations for Sections ---
+
+// Create a new section
+app.post('/sections', (req, res) => {
+  const { courseCode, instructorName, roomName, schedule } = req.body;
+
+  if (!courseCode || !instructorName || !roomName || !schedule) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  db.run(
+    `INSERT INTO Sections (courseCode, instructorName, roomName, schedule) 
+     VALUES (?, ?, ?, ?)`,
+    [courseCode, instructorName, roomName, schedule],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json({ id: this.lastID });
+      }
+    }
+  );
+});
+
+// Read all sections
+app.get('/sections', (req, res) => {
+  db.all(
+    `SELECT sectionID, courseCode, instructorName, roomName, schedule 
+     FROM Sections`,
+    [],
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
+});
+
+// Update an existing section
+app.put('/sections/:id', (req, res) => {
+  const { courseCode, instructorName, roomName, schedule } = req.body;
+  const sectionID = req.params.id;
+
+  if (!courseCode || !instructorName || !roomName || !schedule) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  db.run(
+    `UPDATE Sections 
+     SET courseCode = ?, instructorName = ?, roomName = ?, schedule = ? 
+     WHERE sectionID = ?`,
+    [courseCode, instructorName, roomName, schedule, sectionID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Section not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// Delete a section
+app.delete('/sections/:id', (req, res) => {
+  const sectionID = req.params.id;
+
+  db.run(
+    `DELETE FROM Sections WHERE sectionID = ?`,
+    [sectionID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Section not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
 //Handle all get requests
 
 app.get('/sections', (req, res) => {
@@ -780,6 +950,21 @@ app.get('/students/majors/:id', (req, res) => {
   {
     db.all('SELECT majorName FROM Students LEFT JOIN StudentMajors ON Students.studentID = StudentMajors.studentID LEFT JOIN Majors ON StudentMajors.majorID = Majors.majorID WHERE Students.studentID = ' + req.params.id, [], (err, rows) => res.json(rows));
   }
+});
+
+app.get('/courses', (req, res) => {
+  db.all(
+    `SELECT courseID, coursePrefix, courseNumber, courseName 
+     FROM Courses`,
+    [],
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
 });
 
 app.listen(5000, () => console.log('Backend running on port 5000'));
