@@ -325,9 +325,12 @@ export default function Dashboard({ user }) {
         ? `http://localhost:5000/courselist/${editCourseRow.sectionID}`
         : 'http://localhost:5000/courselist';
 
+      // Combine coursePrefix and sectionNumber
+      const combinedCourseCode = `${newCourseRow.coursePrefix}-${newCourseRow.sectionNumber}`;
+
       const payload = editCourseRow
-        ? { ...newCourseRow, sectionID: editCourseRow.sectionID }
-        : newCourseRow;
+        ? { ...newCourseRow, sectionID: editCourseRow.sectionID, courseCode: combinedCourseCode }
+        : { ...newCourseRow, courseCode: combinedCourseCode };
 
       fetch(url, {
         method,
@@ -339,7 +342,7 @@ export default function Dashboard({ user }) {
           setEditCourseRow(null);
           setNewCourseRow({
             coursePrefix: '',
-            courseNumber: '',
+            sectionNumber: '',
             courseName: '',
             schedule: '',
             dates: '',
@@ -982,62 +985,68 @@ const handleRoleSubmit = () => {
           ))}
           {/* Insert/Edit Row */}
           {(user.adminBool && (
-          <tr>
-            <td>
-              <input
-                type="text"
-                value={newCourseRow.coursePrefix}
-                onChange={(e) => setNewCourseRow({ ...newCourseRow, coursePrefix: e.target.value })}
-                placeholder="Prefix"
-              />
-            </td>
-            <td>
-              <input
-                type="text"
-                value={newCourseRow.courseName}
-                onChange={(e) => setNewCourseRow({ ...newCourseRow, courseName: e.target.value })}
-                placeholder="Course Name"
-              />
-            </td>
-            <td>
-              <input
-                type="text"
-                value={newCourseRow.schedule}
-                onChange={(e) => setNewCourseRow({ ...newCourseRow, schedule: e.target.value })}
-                placeholder="Schedule"
-              />
-            </td>
-            <td>
-              <input
-                type="text"
-                value={newCourseRow.dates}
-                onChange={(e) => setNewCourseRow({ ...newCourseRow, dates: e.target.value })}
-                placeholder="Dates"
-              />
-            </td>
-            <td>
-              <input
-                type="text"
-                value={newCourseRow.room}
-                onChange={(e) => setNewCourseRow({ ...newCourseRow, room: e.target.value })}
-                placeholder="Room"
-              />
-            </td>
-            <td>
-              <input
-                type="text"
-                value={newCourseRow.instructor}
-                onChange={(e) => setNewCourseRow({ ...newCourseRow, instructor: e.target.value })}
-                placeholder="Instructor"
-              />
-            </td>
-            <td>
-              <button onClick={handleCourseSubmit}>
-                {editCourseRow ? 'Update' : 'Add'}
-              </button>
-            </td>
-          </tr>
-          )) || ""}
+  <tr>
+    <td>
+      <input
+        type="text"
+        value={newCourseRow.coursePrefix}
+        onChange={(e) => setNewCourseRow({ ...newCourseRow, coursePrefix: e.target.value })}
+        placeholder="Prefix (e.g., BIZ-102)"
+      />
+      <input
+        type="text"
+        value={newCourseRow.sectionNumber}
+        onChange={(e) => setNewCourseRow({ ...newCourseRow, sectionNumber: e.target.value })}
+        placeholder="Section (e.g., 1)"
+      />
+    </td>
+    <td>
+      <input
+        type="text"
+        value={newCourseRow.courseName}
+        onChange={(e) => setNewCourseRow({ ...newCourseRow, courseName: e.target.value })}
+        placeholder="Course Name"
+      />
+    </td>
+    <td>
+      <input
+        type="text"
+        value={newCourseRow.schedule}
+        onChange={(e) => setNewCourseRow({ ...newCourseRow, schedule: e.target.value })}
+        placeholder="Schedule"
+      />
+    </td>
+    <td>
+      <input
+        type="text"
+        value={newCourseRow.dates}
+        onChange={(e) => setNewCourseRow({ ...newCourseRow, dates: e.target.value })}
+        placeholder="Dates"
+      />
+    </td>
+    <td>
+      <input
+        type="text"
+        value={newCourseRow.room}
+        onChange={(e) => setNewCourseRow({ ...newCourseRow, room: e.target.value })}
+        placeholder="Room"
+      />
+    </td>
+    <td>
+      <input
+        type="text"
+        value={newCourseRow.instructor}
+        onChange={(e) => setNewCourseRow({ ...newCourseRow, instructor: e.target.value })}
+        placeholder="Instructor"
+      />
+    </td>
+    <td>
+      <button onClick={handleCourseSubmit}>
+        {editCourseRow ? 'Update' : 'Add'}
+      </button>
+    </td>
+  </tr>
+)) || ""}
         </tbody>
       </table>
       
