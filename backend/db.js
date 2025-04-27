@@ -37,6 +37,12 @@ db.serialize(() => {
     FOREIGN KEY (roleID) REFERENCES Roles(roleID)
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS Types (
+    typeID INTEGER PRIMARY KEY AUTOINCREMENT,
+    typeName TEXT,
+    typeDescription TEXT
+  )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS Materials (
     materialID INTEGER PRIMARY KEY AUTOINCREMENT,
     materialName TEXT,
@@ -46,14 +52,6 @@ db.serialize(() => {
     fileName TEXT,
     materialFile BLOB,
     FOREIGN KEY (typeID) REFERENCES Types(typeID)
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS Types (
-    typeID INTEGER PRIMARY KEY AUTOINCREMENT,
-    sectionID INTEGER,
-    typeName TEXT,
-    typeDescription TEXT,
-    FOREIGN KEY (sectionID) REFERENCES Sections(sectionID)
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS Grades (
@@ -121,6 +119,7 @@ db.serialize(() => {
     FOREIGN KEY (sectionID) REFERENCES Sections(sectionID),
     PRIMARY KEY (sectionID, studentID)
   )`);
+
   /*
   db.run(`INSERT INTO Majors(majorName) VALUES
     ("Cheesemongering"),
@@ -182,24 +181,72 @@ db.serialize(() => {
     (1,"17:00:00", "19:00:00", "TF", "2025-01-01", "2025-05-01", 5, 2, 4)
   `);
   
-  db.run(`INSERT INTO Types(typeName, sectionID, typeDescription) VALUES
-    ("Quizzes", 1, "a short, informal test"),
-    ("Projects", 1, "must inflict some level of suffering"),
-    ("Final Exam", 2, "Well, this is the part where he kills us."),
-    ("Contest", 3, "a test of valor with a binary winner between students")
+  db.run(`INSERT INTO Types(typeName, typeDescription) VALUES
+    ("Quizzes", "a short, informal test"),
+    ("Projects", "must inflict some level of suffering"),
+    ("Final Exam", "Well, this is the part where he kills us."),
+    ("Contest", "a test of valor with a binary winner between students")
   `);
   
   db.run(`INSERT INTO Materials(materialName, typeID, materialDescription, maxPoints, fileName, materialFile) VALUES
     ("cultOfVikas", 1, "A photo of nerds in joyce 201 slaving away to pass a class", 2, "cheese.jpg", X'` + data.toString("hex")  + `'),
     ("its a small world", 1, "its a ride in disneyland", 5000, "", NULL),
-    ("42", 3, "its the meaning of life", 0, "", NULL)
+    ("42", 3, "its the meaning of life", 0, "", NULL),
+	
+	("Crayons Quiz 1", 1, "The first quiz on crayons", 20, "", NULL),
+	("Crayons Quiz 2", 1, "The second quiz on crayons", 20, "", NULL),
+    ("Crayons Drawing", 2, "A project about drawing with crayons", 50, "", NULL),
+    ("Crayons Drawing", 2, "A project about drawing with crayons", 50, "", NULL),
+    ("Crayons Exam", 3, "An exam about the best flavor of crayon", 100, "", NULL),
+	
+	("Dragon Quiz 1", 1, "The first quiz on Dragon types", 20, "", NULL),
+	("Dragon Quiz 2", 1, "The second quiz on Dragon types", 20, "", NULL),
+    ("Dragon Project", 2, "A project about talking with Dragons", 50, "", NULL),
+    ("Dragon Project", 2, "A project about drawing Dragons", 50, "", NULL),
+    ("Dragon Exam", 3, "An exam on diffrent dragon types", 100, "", NULL),
+	
+	("Looking Quiz 1", 1, "The first quiz on types of looking", 20, "", NULL),
+	("Looking Quiz 2", 1, "The second quiz on looking types", 20, "", NULL),
+    ("Looking Project", 2, "A project about looking at stuff", 50, "", NULL),
+    ("Looking Project", 2, "A project about looking at things", 50, "", NULL),
+    ("Looking Exam", 3, "Hope you brought your glasses", 100, "", NULL),
+
+	("QDI Quiz 1", 1, "Quiz on transdimensional quantum gravity and its impacts on daily life", 20, "", NULL),
+	("QDI Quiz 2", 1, "Quiz on the best 4d duck", 20, "", NULL),
+    ("QDI Project", 2, "A project about rotating things inside your mind", 50, "", NULL),
+    ("QDI Project", 2, "A project about headaches", 50, "", NULL),
+    ("QDI Exam", 3, "Hope you brought your 3d glasses", 100, "", NULL)
   `);
   
   db.run(`INSERT INTO MaterialSections(materialID, sectionID) VALUES
     (2, 4),
     (1, 1),
     (1, 2),
-    (3, 3)
+    (3, 3),
+	
+	(4,4),
+	(5,4),
+	(6,4),
+	(7,4),
+	(8,4),
+	
+	(9,3),
+	(10,3),
+	(11,3),
+	(12,3),
+	(13,3),
+	
+	(14,2),
+	(15,2),
+	(16,2),
+	(17,2),
+	(18,2),
+	
+	(19,1),
+	(20,1),
+	(21,1),
+	(22,1),
+	(23,1)
   `);
   
   db.run(`INSERT INTO Grades(materialID, studentID, grade, file, comments) VALUES
@@ -220,6 +267,7 @@ db.serialize(() => {
     (5, 1),
     (5, 3),
     (5, 4)
+	
   `);*/
 });
 
