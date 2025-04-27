@@ -119,7 +119,7 @@ db.serialize(() => {
     FOREIGN KEY (sectionID) REFERENCES Sections(sectionID),
     PRIMARY KEY (sectionID, studentID)
   )`);
-  //*
+  /*
   db.run(`INSERT INTO Majors(majorName) VALUES
     ("Cheesemongering"),
     ("Cool Hats"),
@@ -267,7 +267,7 @@ db.serialize(() => {
     (5, 3),
     (5, 4)
 	
-  `);//*/
+  `);*/
 });
 
 module.exports = db;
