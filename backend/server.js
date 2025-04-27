@@ -629,4 +629,20 @@ app.get('/students/majors/:id', (req, res) => {
   }
 });
 
+app.delete('/enrollments', (req, res) => {
+    const { studentID, sectionID } = req.body;
+    db.run('DELETE FROM StudentSections WHERE StudentID = ? AND SectionID = ?', [studentID, sectionID], function (err) {
+        if (err) res.status(500).json({ error: 'Database error' });
+        else res.json({ changes: this.changes });
+    });
+});
+
+app.post('/enrollments', (req, res) => {
+    const { studentID, sectionID } = req.body;
+    db.run('INSERT INTO StudentSections(StudentID, SectionID) VALUES (?, ?)', [studentID, sectionID], function (err) {
+        if (err) res.status(500).json({ error: 'Database error' });
+        else res.json({ changes: this.changes });
+    });
+});
+
 app.listen(5000, () => console.log('Backend running on port 5000'));

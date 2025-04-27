@@ -14,6 +14,7 @@ export default function Dashboard({ user }) {
   const [types, setTypes] = useState([]);
   const [grades, setGrades] = useState([]);
   const [students, setStudents] = useState([]);
+  const [studentsInSection, setStudentsInSection] = useState([]);
   
   //vars for which column is currently selected
   const [selectedMaterial, setSelectedMaterial] = useState(0);
@@ -21,10 +22,10 @@ export default function Dashboard({ user }) {
   
   //styling for rows that are selected vs not
   const selectedRow = {
-    backgroundColor: "grey"
+    backgroundColor: "white"
   }
   const defaultRow = {
-    backgroundColor: "white"
+    backgroundColor: "grey"
   }
 
   //fetch general data (doesn't vary based on which section/material is selected)
@@ -51,13 +52,16 @@ export default function Dashboard({ user }) {
     fetch('http://localhost:5000/roles')
       .then(res => res.json())
       .then(setRoles);
+    fetch('http://localhost:5000/students')
+      .then(res => res.json())
+      .then(setStudents);
   };
   
   const fetchSectionData = () => {
     if (selectedSection != 0) {
       fetch('http://localhost:5000/students/section/' + selectedSection)
         .then(res => res.json())
-        .then(setStudents);
+        .then(setStudentsInSection);
       fetch('http://localhost:5000/materials/section/' + selectedSection)
         .then(res => res.json())
         .then(setMaterials);
@@ -144,7 +148,7 @@ export default function Dashboard({ user }) {
         if (x[propertyName] == value) { return i }
         i++
     }
-    return false
+    return undefined
   }
   
   //select the first value in fullList if nothing valid is selected
@@ -581,6 +585,29 @@ export default function Dashboard({ user }) {
         });
     }
   };
+  
+  const enrollStudent = (studentID, sectionID) => {
+      const payload = {
+        studentID: studentID, sectionID: sectionID
+      };
+      
+      const method = (propertyExists(studentID, "studentID", studentsInSection) != undefined) ? "DELETE" : "POST"
+
+      fetch("http://localhost:5000/enrollments/", {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then(() => fetchSectionData()); // Refresh the table
+  }
+  
+  const getCurrentSectionCode = () => {
+    let index = propertyExists(selectedSection, "sectionID", sections)
+    if (index == undefined) { return "" }
+    let sec = sections[index]
+    return sec.coursePrefix + "-" + sec.courseNumber + "-" + sec.sectionNumber
+  }
 
   return (
     <div>
@@ -745,7 +772,7 @@ export default function Dashboard({ user }) {
             <th>Room</th>
             <th>Instructor</th>
             {(user.adminBool && (
-                <th>Actions</th>
+            <th>Actions</th>
             )) || ""}
           </tr>
         </thead>
@@ -1037,6 +1064,7 @@ export default function Dashboard({ user }) {
             <th>Email</th>
             <th>Major</th>
             <th>Graduation Year</th>
+            <th>Enrollment in {getCurrentSectionCode()}</th>
             {(user.adminBool && (
             <th>Actions</th>
             )) || ""}
@@ -1044,13 +1072,16 @@ export default function Dashboard({ user }) {
         </thead>
         <tbody>
           {students.map((student) => (
-            <tr key={student.studentID}>
+            <tr key={student.studentID} style={[defaultRow, selectedRow][+(propertyExists(student.studentID, "studentID", studentsInSection) != undefined)]}>
               <td>{`${student.lastName}, ${student.firstName}`}</td>
               <td>
                 <a href={`mailto:${student.email}`}>{student.email}</a>
               </td>
               <td>{stringMajors(student.studentID)}</td>
               <td>{student.graduationYear}</td>
+              <td>
+                <p>{(propertyExists(student.studentID, "studentID", studentsInSection) != undefined) ? "Yes" : "No"}</p>
+                <button onClick={() => enrollStudent(student.studentID, selectedSection)}>Change</button></td>
               {(user.adminBool && (
               <td>
                 <button onClick={() => handleStudentEdit(student)}>Edit</button>
