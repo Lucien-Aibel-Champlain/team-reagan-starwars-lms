@@ -104,6 +104,75 @@ app.delete('/rooms/:id', (req, res) => {
   });
 });
 
+// --- CRUD for Employees ---
+
+// Create new Employee
+app.post('/employees', (req, res) => {
+  const { firstName, lastName, roleID, email, password } = req.body;
+
+  if (!firstName || !lastName || !roleID || !email || !password) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  db.run(
+    `INSERT INTO Employees (firstName, lastName, roleID, email, password) 
+     VALUES (?, ?, ?, ?, ?)`,
+    [firstName, lastName, roleID, email, password],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json({ id: this.lastID });
+      }
+    }
+  );
+});
+
+// Update existing Employee
+app.put('/employees/:id', (req, res) => {
+  const { firstName, lastName, roleID, email, password } = req.body;
+  const { id } = req.params;
+
+  if (!firstName || !lastName || !roleID || !email || !password) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  db.run(
+    `UPDATE Employees 
+     SET firstName = ?, lastName = ?, roleID = ?, email = ?, password = ?
+     WHERE employeeID = ?`,
+    [firstName, lastName, roleID, email, password, id],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Employee not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// Delete Employee
+app.delete('/employees/:id', (req, res) => {
+  const { id } = req.params;
+
+  db.run(
+    `DELETE FROM Employees WHERE employeeID = ?`,
+    [id],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Employee not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
 // CRUD Operations for Courselist (Sections)
 
 // Create a new course/section
@@ -537,6 +606,90 @@ app.delete('/students/:id', (req, res) => {
             }
           }
         );
+      }
+    }
+  );
+});
+
+// --- CRUD for Roles ---
+
+// Create a new Role
+app.post('/roles', (req, res) => {
+  const { roleName, adminBool } = req.body;
+
+  if (!roleName || adminBool === undefined) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  db.run(
+    `INSERT INTO Roles (roleName, adminBool) 
+     VALUES (?, ?)`,
+    [roleName, adminBool],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json({ id: this.lastID });
+      }
+    }
+  );
+});
+
+// Read all Roles
+app.get('/roles', (req, res) => {
+  db.all(
+    `SELECT * FROM Roles`,
+    [],
+    (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json(rows);
+      }
+    }
+  );
+});
+
+// Update an existing Role
+app.put('/roles/:id', (req, res) => {
+  const { roleName, adminBool } = req.body;
+  const roleID = req.params.id;
+
+  if (!roleName || adminBool === undefined) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  db.run(
+    `UPDATE Roles 
+     SET roleName = ?, adminBool = ? 
+     WHERE roleID = ?`,
+    [roleName, adminBool, roleID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Role not found' });
+      } else {
+        res.json({ changes: this.changes });
+      }
+    }
+  );
+});
+
+// Delete a Role
+app.delete('/roles/:id', (req, res) => {
+  const roleID = req.params.id;
+
+  db.run(
+    `DELETE FROM Roles WHERE roleID = ?`,
+    [roleID],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: 'Role not found' });
+      } else {
+        res.json({ changes: this.changes });
       }
     }
   );
