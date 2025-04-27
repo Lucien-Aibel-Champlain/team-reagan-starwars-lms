@@ -629,4 +629,30 @@ app.get('/students/majors/:id', (req, res) => {
   }
 });
 
+app.delete('/enrollments', (req, res) => {
+    const { studentID, sectionID } = req.body;
+    db.run('DELETE FROM StudentSections WHERE StudentID = ? AND SectionID = ?', [studentID, sectionID], function (err) {
+        if (err) res.status(500).json({ error: 'Database error' });
+        else res.json({ changes: this.changes });
+    });
+});
+
+app.post('/enrollments', (req, res) => {
+    const { studentID, sectionID } = req.body;
+    db.all('SELECT * FROM StudentSections LEFT JOIN Sections ON StudentSections.SectionID = Sections.SectionID WHERE StudentSections.StudentID = ? AND Sections.CourseID = (SELECT CourseID FROM Sections WHERE SectionID = ?);', [studentID, sectionID], (err, rows) => {
+        if (!err) {
+            if (rows.length == 0) {
+                db.run('INSERT INTO StudentSections(StudentID, SectionID) VALUES (?, ?)', [studentID, sectionID], function (err) {
+                    if (err) res.status(500).json({ error: 'Database error' });
+                    else res.json({ changes: this.changes });
+                });
+            }
+            else {
+                res.status(409).json({error: 'Already registered for another section'})
+            }
+        }
+        else { res.status(500).json({ error: 'Database error' })}
+    })
+});
+
 app.listen(5000, () => console.log('Backend running on port 5000'));
