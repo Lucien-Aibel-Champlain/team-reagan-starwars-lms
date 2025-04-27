@@ -28,7 +28,7 @@ export default function Login({ onLogin }) {
 
       if (loginRes.ok) {
         // Pass the name, role, and userID to the parent component
-        onLogin(user);
+        onLogin({  name: data.name, role: data.role, employeeID: data.employeeID, adminBool: data.adminBool});
       } else {
         alert('Invalid credentials');
       }

@@ -151,11 +151,25 @@ export default function Dashboard({ user }) {
         mutator(0)
     }
   }
+  
+    //filter sections to only include those accessable to user 
+  const filterSections = (userID) => {
+	  if (userID){
+		  fetch('http://localhost:5000/sections/employee/' + userID)
+			.then(res => res.json())
+			.then(setSections);
+		}
+  };
+  
 
   //fetch initial data only when starting (remove the [] to do on every render, or add a variable to do so when that variable changes)
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    filterSections(user.employeeID);
+  });
 
   //when sections or materials change, select one if possible
   useEffect(() => {
@@ -584,6 +598,8 @@ export default function Dashboard({ user }) {
         <h2>User Information</h2>
         <p><strong>Name:</strong> {user.name}</p>
         <p><strong>Role:</strong> {user.role}</p>
+        <p><strong>ID:</strong> {user.employeeID}</p>
+        <p><strong>Admin:</strong> {["No", "Yes"][user.adminBool]}</p>
       </div>
       
       <h2>Majors</h2>
