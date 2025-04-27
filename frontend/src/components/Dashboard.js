@@ -21,6 +21,7 @@ export default function Dashboard({ user }) {
   });
   const [courses, setCourses] = useState([]); // Tracks the courses data
 
+  console.log(sections)
   
   //vars for which column is currently selected
   const [selectedMaterial, setSelectedMaterial] = useState(0);
@@ -36,9 +37,6 @@ export default function Dashboard({ user }) {
 
   //fetch general data (doesn't vary based on which section/material is selected)
   const fetchData = () => {
-    fetch('http://localhost:5000/sections')
-      .then((res) => res.json())
-      .then(setSections);
     fetch('http://localhost:5000/majors')
       .then(res => res.json()) 
       .then(setMajors);
@@ -696,19 +694,27 @@ const handleRoleSubmit = () => {
 
 const [editSectionRow, setEditSectionRow] = useState(null); // Tracks the row being edited
 const [newSectionRow, setNewSectionRow] = useState({
-  courseCode: '',
-  instructorName: '',
-  roomName: '',
-  schedule: '',
+  courseID: 0,
+  employeeID: 0,
+  roomID: 0,
+  startTime: "",
+  endTime: "",
+  weekDays: "",
+  startDate: "",
+  endDate: ""
 }); // Tracks the new row data
 
 const handleSectionEdit = (row) => {
   setEditSectionRow(row); // Set the row being edited
   setNewSectionRow({
-    courseCode: row.courseCode,
-    instructorName: row.instructorName,
-    roomName: row.roomName,
-    schedule: row.schedule,
+      courseID: row.courseID,
+      employeeID: row.sectionID,
+      roomID: row.roomID,
+      startTime: row.startTime,
+      endTime: row.endTime,
+      weekDays: row.weekDays,
+      startDate: row.startDate,
+      endDate: row.endDate
   }); // Populate input fields with existing data
 };
 
@@ -720,16 +726,42 @@ const handleSectionDelete = (id) => {
   }
 };
 
+const isTime = (value) => {
+    return /^\d\d:\d\d:\d\d$/.test(value)
+}
+const isDate = (value) => {
+    value = value.split("-")
+    if (value.length != 3) { return false }
+    if (isNaN(Number(value[0]))) { return false }
+    if (isNaN(Number(value[1]))) { return false }
+    if (Number(value[1]) > 12 || Number(value[1]) < 1) { return false }
+    if (isNaN(Number(value[2]))) { return false }
+    if (Number(value[1]) == 2) {
+        if (Number(value[2]) > 28 || Number(value[2]) < 1) { return false }
+    }
+    else if ([1, 3, 5, 7, 8, 10, 12].includes(Number(value[1]))) {
+        if (Number(value[2]) > 31 || Number(value[2]) < 1) { return false }
+    }
+    else {
+        if (Number(value[2]) > 30 || Number(value[2]) < 1) { return false }
+    }
+    return true
+}
+
 const handleSectionSubmit = () => {
+  const payload = editSectionRow
+    ? { ...newSectionRow, sectionID: editSectionRow.sectionID }
+    : newSectionRow;
+  if (!isTime(payload.startTime)) { alert("Start Time is invalid format."); return }
+  if (!isTime(payload.endTime)) { alert("End Time is invalid format."); return }
+  if (!isDate(payload.startDate)) { alert("Start Date is invalid format."); return }
+  if (!isDate(payload.endDate)) { alert("End Date is invalid format."); return }
   if (window.confirm('Are you sure you want to submit this section?')) {
     const method = editSectionRow ? 'PUT' : 'POST';
     const url = editSectionRow
       ? `http://localhost:5000/sections/${editSectionRow.sectionID}`
       : 'http://localhost:5000/sections';
 
-    const payload = editSectionRow
-      ? { ...newSectionRow, sectionID: editSectionRow.sectionID }
-      : newSectionRow;
 
     fetch(url, {
       method,
@@ -740,10 +772,14 @@ const handleSectionSubmit = () => {
       .then(() => {
         setEditSectionRow(null); // Clear edit state
         setNewSectionRow({
-          courseCode: '',
-          instructorName: '',
-          roomName: '',
-          schedule: '',
+          courseID: 0,
+          employeeID: 0,
+          roomID: 0,
+          startTime: "",
+          endTime: "",
+          weekDays: "",
+          startDate: "",
+          endDate: ""
         }); // Clear input fields
         fetchData(); // Refresh the table
       });
@@ -998,7 +1034,73 @@ const handleSectionSubmit = () => {
       </div>
       )) || ""}
       
-      <h2>Courselist</h2>
+
+      <h2>Courses</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Course Prefix</th>
+            <th>Course Number</th>
+            <th>Course Name</th>
+
+            {(user.adminBool && <th>Actions</th>) || ''}
+          </tr>
+        </thead>
+        <tbody>
+          {courses.map((course) => (
+            <tr key={course.courseID}>
+              <td>{course.coursePrefix}</td>
+              <td>{course.courseNumber}</td>
+              <td>{course.courseName}</td>
+              {(user.adminBool && (
+                <td>
+                  <button onClick={() => handleCourseEdit(course)}>Edit</button>
+                  <button onClick={() => handleCourseDelete(course.courseID)}>Delete</button>
+                </td>
+              )) || ''}
+            </tr>
+          ))}
+          {/* Insert/Edit Row */}
+          {(user.adminBool && (
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  value={newCourseRow.coursePrefix}
+
+                  onChange={(e) => setNewCourseRow({ ...newCourseRow, coursePrefix: e.target.value })}
+                  placeholder="Course Prefix"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  value={newCourseRow.courseNumber}
+                  onChange={(e) => setNewCourseRow({ ...newCourseRow, courseNumber: e.target.value })}
+                  placeholder="Course Number"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+
+                  value={newCourseRow.courseName}
+                  onChange={(e) => setNewCourseRow({ ...newCourseRow, courseName: e.target.value })}
+                  placeholder="Course Name"
+                />
+              </td>
+              <td>
+                <button onClick={handleCourseSubmit}>
+                  {editCourseRow ? 'Update' : 'Add'}
+                </button>
+
+              </td>
+            </tr>
+          )) || ''}
+        </tbody>
+      </table>
+      
+      <h2>Sections</h2>
       <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
         <thead>
           <tr>
@@ -1024,8 +1126,8 @@ const handleSectionSubmit = () => {
               <td>{sec.lastName + ", " + sec.firstName}</td>
               {(user.adminBool && (
               <td>
-                <button onClick={() => handleCourseEdit(sec)}>Edit</button>
-                <button onClick={() => handleCourseDelete(sec.sectionID)}>Delete</button>
+                <button onClick={() => handleSectionEdit(sec)}>Edit</button>
+                <button onClick={() => handleSectionDelete(sec.sectionID)}>Delete</button>
               </td>
               )) || ""}
             </tr>
@@ -1034,62 +1136,88 @@ const handleSectionSubmit = () => {
           {(user.adminBool && (
   <tr>
     <td>
+    <select
+      value={newSectionRow.courseID}
+      onChange={(e) => setNewSectionRow({ ...newSectionRow, courseID: e.target.value })}
+    >
+      <option value="">Select Course</option>
+      {courses.map((course) => (
+        <option key={course.courseID} value={course.courseID}>
+          {course.coursePrefix + "-" + course.courseNumber}
+        </option>
+
+      ))}
+      </select>
+    </td>
+    <td>
+    {
+    (courses[propertyExists(newSectionRow.courseID, "courseID", courses)] != undefined) ? courses[propertyExists(newSectionRow.courseID, "courseID", courses)].courseName : ""
+    }
+    </td>
+    <td>
       <input
         type="text"
-        value={newCourseRow.coursePrefix}
-        onChange={(e) => setNewCourseRow({ ...newCourseRow, coursePrefix: e.target.value })}
-        placeholder="Prefix (e.g., BIZ-102)"
+        value={newSectionRow.startTime}
+        onChange={(e) => setNewSectionRow({ ...newSectionRow, startTime: e.target.value })}
+        placeholder="Start Time"
       />
       <input
         type="text"
-        value={newCourseRow.sectionNumber}
-        onChange={(e) => setNewCourseRow({ ...newCourseRow, sectionNumber: e.target.value })}
-        placeholder="Section (e.g., 1)"
+        value={newSectionRow.endTime}
+        onChange={(e) => setNewSectionRow({ ...newSectionRow, endTime: e.target.value })}
+        placeholder="End Time"
+      />
+      <input
+        type="text"
+        value={newSectionRow.weekDays}
+        onChange={(e) => setNewSectionRow({ ...newSectionRow, weekDays: e.target.value })}
+        placeholder="Days"
       />
     </td>
     <td>
       <input
         type="text"
-        value={newCourseRow.courseName}
-        onChange={(e) => setNewCourseRow({ ...newCourseRow, courseName: e.target.value })}
-        placeholder="Course Name"
+        value={newSectionRow.startDate}
+        onChange={(e) => setNewSectionRow({ ...newSectionRow, startDate: e.target.value })}
+        placeholder="Start Date"
       />
-    </td>
-    <td>
+      <span> - </span>
       <input
         type="text"
-        value={newCourseRow.schedule}
-        onChange={(e) => setNewCourseRow({ ...newCourseRow, schedule: e.target.value })}
-        placeholder="Schedule"
+        value={newSectionRow.endDate}
+        onChange={(e) => setNewSectionRow({ ...newSectionRow, endDate: e.target.value })}
+        placeholder="End Date"
       />
     </td>
     <td>
-      <input
-        type="text"
-        value={newCourseRow.dates}
-        onChange={(e) => setNewCourseRow({ ...newCourseRow, dates: e.target.value })}
-        placeholder="Dates"
-      />
+        <select
+          value={newSectionRow.roomID}
+          onChange={(e) => setNewSectionRow({ ...newSectionRow, roomID: e.target.value })}
+        >
+          <option value="">Select Room</option>
+          {rooms.map((room) => (
+            <option key={room.roomID} value={room.roomID}>
+              {room.buildingName + " " + room.roomNumber}
+            </option>
+          ))}
+          </select>
     </td>
     <td>
-      <input
-        type="text"
-        value={newCourseRow.room}
-        onChange={(e) => setNewCourseRow({ ...newCourseRow, room: e.target.value })}
-        placeholder="Room"
-      />
+        <select
+          value={newSectionRow.employeeID}
+          onChange={(e) => setNewSectionRow({ ...newSectionRow, employeeID: e.target.value })}
+        >
+          <option value="">Select Instructor</option>
+          {employees.map((emp) => (
+            <option key={emp.employeeID} value={emp.employeeID}>
+              {emp.lastName + ", " + emp.firstName}
+            </option>
+          ))}
+          </select>
     </td>
     <td>
-      <input
-        type="text"
-        value={newCourseRow.instructor}
-        onChange={(e) => setNewCourseRow({ ...newCourseRow, instructor: e.target.value })}
-        placeholder="Instructor"
-      />
-    </td>
-    <td>
-      <button onClick={handleCourseSubmit}>
-        {editCourseRow ? 'Update' : 'Add'}
+      <button onClick={handleSectionSubmit}>
+        {editSectionRow ? 'Update' : 'Add'}
       </button>
     </td>
   </tr>
@@ -1392,140 +1520,6 @@ const handleSectionSubmit = () => {
             </td>
           </tr>
           )) || ""}
-        </tbody>
-      </table>
-
-      <h2>Courses</h2>
-      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
-        <thead>
-          <tr>
-            <th>Course Prefix</th>
-            <th>Course Number</th>
-            <th>Course Name</th>
-            {(user.adminBool && <th>Actions</th>) || ''}
-          </tr>
-        </thead>
-        <tbody>
-          {courses.map((course) => (
-            <tr key={course.courseID}>
-              <td>{course.coursePrefix}</td>
-              <td>{course.courseNumber}</td>
-              <td>{course.courseName}</td>
-              {(user.adminBool && (
-                <td>
-                  <button onClick={() => handleCourseEdit(course)}>Edit</button>
-                  <button onClick={() => handleCourseDelete(course.courseID)}>Delete</button>
-                </td>
-              )) || ''}
-            </tr>
-          ))}
-          {/* Insert/Edit Row */}
-          {(user.adminBool && (
-            <tr>
-              <td>
-                <input
-                  type="text"
-                  value={newCourseRow.coursePrefix}
-                  onChange={(e) => setNewCourseRow({ ...newCourseRow, coursePrefix: e.target.value })}
-                  placeholder="Course Prefix"
-                />
-              </td>
-              <td>
-                <input
-                  type="text"
-                  value={newCourseRow.courseNumber}
-                  onChange={(e) => setNewCourseRow({ ...newCourseRow, courseNumber: e.target.value })}
-                  placeholder="Course Number"
-                />
-              </td>
-              <td>
-                <input
-                  type="text"
-                  value={newCourseRow.courseName}
-                  onChange={(e) => setNewCourseRow({ ...newCourseRow, courseName: e.target.value })}
-                  placeholder="Course Name"
-                />
-              </td>
-              <td>
-                <button onClick={handleCourseSubmit}>
-                  {editCourseRow ? 'Update' : 'Add'}
-                </button>
-              </td>
-            </tr>
-          )) || ''}
-        </tbody>
-      </table>
-
-      <h2>Sections</h2>
-      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
-        <thead>
-          <tr>
-            <th>Section ID</th>
-            <th>Course Code</th>
-            <th>Instructor</th>
-            <th>Room</th>
-            <th>Schedule</th>
-            {(user.adminBool && <th>Actions</th>) || ''}
-          </tr>
-        </thead>
-        <tbody>
-          {sections.map((section) => (
-            <tr key={section.sectionID}>
-              <td>{section.sectionID}</td>
-              <td>{section.courseCode}</td>
-              <td>{section.instructorName}</td>
-              <td>{section.roomName}</td>
-              <td>{`${section.startTime} - ${section.endTime} (${section.weekDays})`}</td>
-              {(user.adminBool && (
-                <td>
-                  <button onClick={() => handleSectionEdit(section)}>Edit</button>
-                  <button onClick={() => handleSectionDelete(section.sectionID)}>Delete</button>
-                </td>
-              )) || ''}
-            </tr>
-          ))}
-          {/* Insert/Edit Row */}
-          {(user.adminBool && (
-            <tr>
-              <td>
-                <input
-                  type="text"
-                  value={newSectionRow.courseCode}
-                  onChange={(e) => setNewSectionRow({ ...newSectionRow, courseCode: e.target.value })}
-                  placeholder="Course Code"
-                />
-              </td>
-              <td>
-                <input
-                  type="text"
-                  value={newSectionRow.instructorName}
-                  onChange={(e) => setNewSectionRow({ ...newSectionRow, instructorName: e.target.value })}
-                  placeholder="Instructor Name"
-                />
-              </td>
-              <td>
-                <input
-                  type="text"
-                  value={newSectionRow.roomName}
-                  onChange={(e) => setNewSectionRow({ ...newSectionRow, roomName: e.target.value })}
-                  placeholder="Room Name"
-                />
-              </td>
-              <td>
-                <input
-                  type="text"
-                  value={newSectionRow.schedule}
-                  onChange={(e) => setNewSectionRow({ ...newSectionRow, schedule: e.target.value })}
-                  placeholder="Schedule"
-                />
-              </td>
-              <td>
-                <button onClick={handleSectionSubmit}>
-                  {editSectionRow ? 'Update' : 'Add'}
-                </button>
-              </td>
-            </tr>
-          )) || ''}
         </tbody>
       </table>
     </div>

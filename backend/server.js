@@ -194,65 +194,6 @@ app.post('/courselist', (req, res) => {
   );
 });
 
-// Read all courses/sections
-app.get('/courselist', (req, res) => {
-  db.all(
-    `SELECT s.sectionID, s.coursePrefix, s.courseNumber, s.courseName, s.schedule, s.dates, 
-            r.buildingName || ' ' || r.roomNumber AS room, 
-            e.firstName || ' ' || e.lastName AS instructor 
-     FROM Sections AS s
-     LEFT JOIN Rooms AS r ON s.roomID = r.roomID
-     LEFT JOIN Employees AS e ON s.employeeID = e.employeeID`,
-    [],
-    (err, rows) => {
-      if (err) {
-        res.status(500).json({ error: 'Database error' });
-      } else {
-        res.json(rows);
-      }
-    }
-  );
-});
-
-// Update an existing course/section
-app.put('/courselist/:id', (req, res) => {
-  const { coursePrefix, courseNumber, courseName, schedule, dates, room, instructor } = req.body;
-  const sectionID = req.params.id;
-
-  db.run(
-    `UPDATE Sections 
-     SET coursePrefix = ?, courseNumber = ?, courseName = ?, schedule = ?, dates = ?, 
-         roomID = (SELECT roomID FROM Rooms WHERE buildingName || ' ' || roomNumber = ?), 
-         employeeID = (SELECT employeeID FROM Employees WHERE firstName || ' ' || lastName = ?) 
-     WHERE sectionID = ?`,
-    [coursePrefix, courseNumber, courseName, schedule, dates, room, instructor, sectionID],
-    function (err) {
-      if (err) {
-        res.status(500).json({ error: 'Database error' });
-      } else if (this.changes === 0) {
-        res.status(404).json({ error: 'Section not found' });
-      } else {
-        res.json({ changes: this.changes });
-      }
-    }
-  );
-});
-
-// Delete a course/section
-app.delete('/courselist/:id', (req, res) => {
-  const sectionID = req.params.id;
-
-  db.run('DELETE FROM Sections WHERE sectionID = ?', [sectionID], function (err) {
-    if (err) {
-      res.status(500).json({ error: 'Database error' });
-    } else if (this.changes === 0) {
-      res.status(404).json({ error: 'Section not found' });
-    } else {
-      res.json({ changes: this.changes });
-    }
-  });
-});
-
 // CRUD Operations for Materials
 
 // Create a new material
@@ -323,7 +264,7 @@ app.delete('/materials/:id', (req, res) => {
     } else {
       res.json({ changes: this.changes });
     }
-  );
+  })
 });
 
 // CRUD Operations for Types
@@ -395,7 +336,7 @@ app.delete('/types/:id', (req, res) => {
     } else {
       res.json({ changes: this.changes });
     }
-  );
+  })
 });
 
 // CRUD Operations for Grades
@@ -784,56 +725,46 @@ app.delete('/courses/:id', (req, res) => {
 
 // Create a new section
 app.post('/sections', (req, res) => {
-  const { courseCode, instructorName, roomName, schedule } = req.body;
+  const { courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays } = req.body;
 
-  if (!courseCode || !instructorName || !roomName || !schedule) {
+  if (!courseID || !employeeID || !endDate || !endTime || !roomID || !startDate || !startTime || !weekDays) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+  
+  db.all('SELECT sectionNumber FROM Sections WHERE courseID = ? ORDER BY sectionNumber DESC LIMIT 1', [courseID], (err, rows) => { 
+        let sectionNumber = 1
+        if (rows.length > 0) { sectionNumber = rows[0].sectionNumber + 1}
+        db.run(
+        `INSERT INTO Sections (startTime, endTime, weekDays, startDate, endDate, employeeID, roomID, courseID, sectionNumber) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [startTime, endTime, weekDays, startDate, endDate, employeeID, roomID, courseID, sectionNumber],
+        function (err) {
+          if (err) {
+            res.status(500).json({ error: 'Database error' });
+          } else {
+            res.json({ id: this.lastID });
+          }
+        }
+      );
+  });
 
-  db.run(
-    `INSERT INTO Sections (courseCode, instructorName, roomName, schedule) 
-     VALUES (?, ?, ?, ?)`,
-    [courseCode, instructorName, roomName, schedule],
-    function (err) {
-      if (err) {
-        res.status(500).json({ error: 'Database error' });
-      } else {
-        res.json({ id: this.lastID });
-      }
-    }
-  );
-});
-
-// Read all sections
-app.get('/sections', (req, res) => {
-  db.all(
-    `SELECT sectionID, courseCode, instructorName, roomName, schedule 
-     FROM Sections`,
-    [],
-    (err, rows) => {
-      if (err) {
-        res.status(500).json({ error: 'Database error' });
-      } else {
-        res.json(rows);
-      }
-    }
-  );
+  
 });
 
 // Update an existing section
 app.put('/sections/:id', (req, res) => {
-  const { courseCode, instructorName, roomName, schedule } = req.body;
+  const { courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays } = req.body;
   const sectionID = req.params.id;
 
-  if (!courseCode || !instructorName || !roomName || !schedule) {
+  if (!courseID || !employeeID || !endDate || !endTime || !roomID || !sectionID || !startDate || !startTime || !weekDays) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   db.run(
     `UPDATE Sections 
-     SET courseCode = ?, instructorName = ?, roomName = ?, schedule = ? 
+     SET courseID = ?, employeeID = ?, endDate = ?, endTime = ?, roomID = ?, startDate = ?, startTime = ?, weekDays = ? 
      WHERE sectionID = ?`,
-    [courseCode, instructorName, roomName, schedule, sectionID],
+    [courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays, sectionID],
     function (err) {
       if (err) {
         res.status(500).json({ error: 'Database error' });
