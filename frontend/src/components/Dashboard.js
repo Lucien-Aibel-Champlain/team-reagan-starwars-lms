@@ -1095,12 +1095,17 @@ const handleRoleSubmit = () => {
               />
             </td>
             <td>
-              <input
-                type="text"
+              <select
                 value={newMaterialRow.typeID}
                 onChange={(e) => setNewMaterialRow({ ...newMaterialRow, typeID: e.target.value })}
-                placeholder="Type ID"
-              />
+              >
+                <option value="">Select Type</option>
+                {types.map((type) => (
+                  <option key={type.typeID} value={type.typeID}>
+                    {type.typeName}
+                  </option>
+                ))}
+              </select>
             </td>
             <td>
               <input
