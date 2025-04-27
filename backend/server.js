@@ -22,7 +22,7 @@ app.post('/login', (req, res) => {
 app.post('/getEmployeeDetails', (req, res) => {
   const { email } = req.body;
   db.get(
-    'SELECT firstName || " " || lastName AS name, roleName AS role FROM Employees LEFT JOIN Roles ON Employees.roleID = Roles.roleID WHERE email = ?',
+    'SELECT firstName || " " || lastName AS name, roleName AS role, employeeID, Roles.adminBool AS ab FROM Employees LEFT JOIN Roles ON Employees.roleID = Roles.roleID WHERE email = ?',
     [email],
     (err, row) => {
       if (err) {
@@ -30,7 +30,7 @@ app.post('/getEmployeeDetails', (req, res) => {
       } else if (!row) {
         res.status(404).json({ error: 'User not found' });
       } else {
-        res.json({ name: row.name, role: row.role });
+        res.json({ name: row.name, role: row.role, employeeID: row.employeeID, adminBool: row.ab });
       }
     }
   );
@@ -546,6 +546,13 @@ app.delete('/students/:id', (req, res) => {
 
 app.get('/sections', (req, res) => {
   db.all('SELECT s.courseID, s.sectionID, s.employeeID, s.roomID, s.startTime, s.endTime, s.weekDays, s.startDate, s.endDate, s.sectionNumber, c.coursePrefix, c.courseNumber, c.courseName, r.buildingName, r.roomNumber, e.firstName, e.lastName FROM Sections AS s LEFT JOIN Courses AS c on s.courseID = c.courseID LEFT JOIN Rooms AS r ON s.roomID = r.roomID LEFT JOIN Employees AS e ON s.employeeID = e.employeeID', [], (err, rows) => res.json(rows));
+});
+
+app.get('/sections/employee/:id', (req, res) => {
+  if (!isNaN(parseInt(req.params.id)))
+  {
+    db.all('SELECT s.courseID, s.sectionID, s.employeeID, s.roomID, s.startTime, s.endTime, s.weekDays, s.startDate, s.endDate, s.sectionNumber, c.coursePrefix, c.courseNumber, c.courseName, r.buildingName, r.roomNumber, e.firstName, e.lastName FROM Sections AS s LEFT JOIN Courses AS c on s.courseID = c.courseID LEFT JOIN Rooms AS r ON s.roomID = r.roomID LEFT JOIN Employees AS e ON s.employeeID = e.employeeID WHERE s.employeeID = ' + req.params.id, [], (err, rows) => res.json(rows));
+  }
 });
 
 app.get('/majors', (req, res) => {
