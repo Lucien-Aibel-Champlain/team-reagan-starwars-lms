@@ -102,7 +102,6 @@ export default function Dashboard({ user }) {
     }
     Promise.all(promiseArray).then(results => { let newDict = {}; for (let element of results) {
             newDict[element[0]] = element[1]
-            console.log(element)
         };
         setStudentMajors(newDict);
         })
@@ -373,7 +372,7 @@ export default function Dashboard({ user }) {
 
   // Handle Delete for Materials
   const handleMaterialDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this material?')) {
+    if (window.confirm('Are you sure you want to delete this material? This will remove ALL references to it.')) {
       fetch(`http://localhost:5000/materials/${id}`, { method: 'DELETE' })
         .then((res) => res.json())
         .then(() => fetchData()); // Refresh the table
@@ -540,7 +539,6 @@ export default function Dashboard({ user }) {
       graduationYear: row.graduationYear,
       majorIDs: studentMajors[row.studentID].map((major) => major.majorID), // Extract major IDs
     });
-    console.log(newStudentRow)
   };
 
   // Handle Delete for Students
@@ -817,6 +815,7 @@ const handleSectionSubmit = () => {
 };
 
   const removeMaterialFromSection = (materialID, sectionID) => {
+    if (window.confirm('Are you sure you want to remove this material from this section? It will still be visible in other sections')) {
         fetch('http://localhost:5000/materials/section', {
           method: "DELETE",
           headers: { 'Content-Type': 'application/json' },
@@ -824,6 +823,7 @@ const handleSectionSubmit = () => {
         })
           .then((res) => {if (res.status != 200) res.json().then(res => alert(res["error"]))})
           .then(fetchData())
+    }
   }
   
   const addMaterialToSection = (materialID, sectionID) => {
