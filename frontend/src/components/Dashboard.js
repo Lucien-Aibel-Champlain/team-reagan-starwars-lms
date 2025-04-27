@@ -58,6 +58,8 @@ export default function Dashboard({ user }) {
     fetch('http://localhost:5000/students')
       .then(res => res.json())
       .then(setStudents);
+    fetchSectionData();
+    fetchMaterialData();
   };
   
   const fetchSectionData = () => {
@@ -599,7 +601,7 @@ export default function Dashboard({ user }) {
         body: JSON.stringify(payload),
       })
         .then((res) => {if (res.status != 200) res.json().then(res => alert(res["error"]))})
-        .then(() => fetchSectionData()); // Refresh the table
+        .then(() => fetchData()); // Refresh the table
   }
   
   const getCurrentSectionCode = () => {
