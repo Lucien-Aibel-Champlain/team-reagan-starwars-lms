@@ -730,7 +730,7 @@ export default function Dashboard({ user }) {
         </thead>
         <tbody>
           {sections.map((sec) => (
-            <tr key={sec.sectionID}>
+            <tr key={sec.sectionID} onClick={() => {setSelectedSection(sec.sectionID)}} style={[defaultRow, selectedRow][+(selectedSection==sec.sectionID)]}>
               <td>{sec.coursePrefix + "-" + sec.courseNumber + "-" + sec.sectionNumber}</td>
               <td>{sec.courseName}</td>
               <td>{sec.startTime + "-" + sec.endTime + " " + sec.weekDays}</td>
