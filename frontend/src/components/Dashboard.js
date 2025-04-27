@@ -193,8 +193,6 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     fetchMajors();
   }, [students]);
-  
-  let isAdmin = propertyExists(user.userID, "userID", employees)
 
   const [editRow, setEditRow] = useState(null); // Tracks the row being edited
   const [newRow, setNewRow] = useState({ majorName: '' }); // Tracks the new row data
@@ -545,7 +543,7 @@ export default function Dashboard({ user }) {
       lastName: row.lastName,
       email: row.email,
       graduationYear: row.graduationYear,
-      majorIDs: row.majors.map((major) => major.majorID), // Extract major IDs
+      majorIDs: studentMajors[row.studentID].map((major) => major.majorID), // Extract major IDs
     });
   };
 
@@ -607,20 +605,25 @@ export default function Dashboard({ user }) {
         <thead>
           <tr>
             <th>Name</th>
-            <th>Actions</th>
+            {(user.adminBool && (
+                <th>Actions</th>
+            )) || ""}
           </tr>
         </thead>
         <tbody>
           {majors.map((maj) => (
             <tr key={maj.majorID}>
               <td>{maj.majorName}</td>
+              {(user.adminBool && (
               <td>
                 <button onClick={() => handleEdit(maj)}>Edit</button>
                 <button onClick={() => handleDelete(maj.majorID)}>Delete</button>
               </td>
+              )) || ""}
             </tr>
           ))}
           {/* Insert/Edit Row */}
+          {(user.adminBool && (
           <tr>
             <td>
               <input
@@ -635,6 +638,7 @@ export default function Dashboard({ user }) {
               </button>
             </td>
           </tr>
+          )) || ""}
         </tbody>
       </table>
       
@@ -644,7 +648,9 @@ export default function Dashboard({ user }) {
           <tr>
             <th>Building</th>
             <th>Number</th>
-            <th>Actions</th> {/* New Actions column */}
+            {(user.adminBool && (
+            <th>Actions</th>
+            )) || ""}
           </tr>
         </thead>
         <tbody>
@@ -652,13 +658,16 @@ export default function Dashboard({ user }) {
             <tr key={room.roomID}>
               <td>{room.buildingName}</td>
               <td>{room.roomNumber}</td>
+              {(user.adminBool && (
               <td>
                 <button onClick={() => handleRoomEdit(room)}>Edit</button>
                 <button onClick={() => handleRoomDelete(room.roomID)}>Delete</button>
               </td>
+              )) || ""}
             </tr>
           ))}
           {/* Insert/Edit Row */}
+          {(user.adminBool && (
           <tr>
             <td>
               <input
@@ -682,10 +691,11 @@ export default function Dashboard({ user }) {
               </button>
             </td>
           </tr>
+          )) || "" }
         </tbody>
       </table>
       
-      {isAdmin && (
+      {(user.adminBool && (
       <div>
       <h2>Employees</h2>
       <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
@@ -729,7 +739,7 @@ export default function Dashboard({ user }) {
         </tbody>
       </table>
       </div>
-      )}
+      )) || ""}
       
       <h2>Courselist</h2>
       <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
@@ -741,7 +751,9 @@ export default function Dashboard({ user }) {
             <th>Dates</th>
             <th>Room</th>
             <th>Instructor</th>
-            <th>Actions</th> {/* New Actions column */}
+            {(user.adminBool && (
+                <th>Actions</th>
+            )) || ""}
           </tr>
         </thead>
         <tbody>
@@ -753,13 +765,16 @@ export default function Dashboard({ user }) {
               <td>{sec.startDate + " - " + sec.endDate}</td>
               <td>{sec.buildingName + " " + sec.roomNumber}</td>
               <td>{sec.lastName + ", " + sec.firstName}</td>
+              {(user.adminBool && (
               <td>
                 <button onClick={() => handleCourseEdit(sec)}>Edit</button>
                 <button onClick={() => handleCourseDelete(sec.sectionID)}>Delete</button>
               </td>
+              )) || ""}
             </tr>
           ))}
           {/* Insert/Edit Row */}
+          {(user.adminBool && (
           <tr>
             <td>
               <input
@@ -815,6 +830,7 @@ export default function Dashboard({ user }) {
               </button>
             </td>
           </tr>
+          )) || ""}
         </tbody>
       </table>
       
@@ -1028,7 +1044,9 @@ export default function Dashboard({ user }) {
             <th>Email</th>
             <th>Major</th>
             <th>Graduation Year</th>
-            <th>Actions</th> {/* New Actions column */}
+            {(user.adminBool && (
+            <th>Actions</th>
+            )) || ""}
           </tr>
         </thead>
         <tbody>
@@ -1040,13 +1058,16 @@ export default function Dashboard({ user }) {
               </td>
               <td>{stringMajors(student.studentID)}</td>
               <td>{student.graduationYear}</td>
+              {(user.adminBool && (
               <td>
                 <button onClick={() => handleStudentEdit(student)}>Edit</button>
                 <button onClick={() => handleStudentDelete(student.studentID)}>Delete</button>
               </td>
+              )) || ""}
             </tr>
           ))}
           {/* Insert/Edit Row */}
+          {(user.adminBool && (
           <tr>
             <td>
               <input
@@ -1102,6 +1123,7 @@ export default function Dashboard({ user }) {
               </button>
             </td>
           </tr>
+          )) || ""}
         </tbody>
       </table>
     </div>
