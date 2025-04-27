@@ -598,7 +598,7 @@ export default function Dashboard({ user }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-        .then((res) => res.json())
+        .then((res) => {if (res.status != 200) res.json().then(res => alert(res["error"]))})
         .then(() => fetchSectionData()); // Refresh the table
   }
   

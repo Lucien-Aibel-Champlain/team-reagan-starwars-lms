@@ -121,6 +121,7 @@ db.serialize(() => {
     FOREIGN KEY (sectionID) REFERENCES Sections(sectionID),
     PRIMARY KEY (sectionID, studentID)
   )`);
+
   /*
   db.run(`INSERT INTO Majors(majorName) VALUES
     ("Cheesemongering"),
