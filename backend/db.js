@@ -166,12 +166,12 @@ db.serialize(() => {
   `);
   
   db.run(`INSERT INTO Employees(firstName, lastName, roleID, email, password) VALUES
-    ("ADMIN", "ADMINSON", 4, "ADMIN.ADMINSON@mymail.champlain.edu", "password"),
-    ("charlie", "chaplin", 1, "killme@hotmail.com", "AAAAAAAAAAAAB"),
-    ("John", "Doe", 2, "J.DOE@mymail.champlain.edu", "12345"),
-    ("Jane", "Doe", 2, "J.DOE2@mymail.champlain.edu", "123456"),
-    ("Ur", "Mother", 3, "Sm3ll1eSausage@yahoo.net", "pizzahut"),
-    ("Jack", "Black", 1, "schoolOfRock@google.com", "Geet@r")
+    ("ADMIN", "ADMINSON", 4, "ADMIN.ADMINSON@school.edu", "password"),
+    ("John", "Doe", 1, "John.Doe@school.edu", "AAAAAAAAAAAAB"),
+    ("Jane", "Doe", 2, "Jane.Doe@school.edu", "12345"),
+    ("Mark", "Smith", 2, "Mark.Smith@school.edu", "123456"),
+    ("Bob", "Dings", 3, "Bob.Dings@school.edu", "pizzahut"),
+    ("Jan", "Kowalski", 1, "Jan.Kowalski@school.edu", "Namsake")
   `);
 
   db.run(`INSERT INTO Sections(sectionNumber, startTime, endTime, weekDays, startDate, endDate, employeeID, roomID, courseID) VALUES
@@ -249,10 +249,78 @@ db.serialize(() => {
 	(23,1)
   `);
   
+  //There is definately a better way to generate this much junk data, however there is no way to stop me from being so lazy that I will make more work for myself.
+  
   db.run(`INSERT INTO Grades(materialID, studentID, grade, file, comments) VALUES
     (2, 1, 5000, NULL, "yay you did it"),
     (2, 2, 4000, NULL, "technically, that was ‘it’s a small world II’"),
-    (3, 3,0, NULL, "I don’t like you")
+	
+    ( 9, 1, 15, NULL, "Better luck next time"),
+    ( 10, 1, 20, NULL, "Cheated"),
+    ( 11, 1, 15, NULL, "Amazing"),
+    ( 12, 1, 50, NULL, "Good Work"),
+    ( 13, 1, 10, NULL, "mediocre"),
+	
+    ( 4, 1, 6, NULL, "mediocre"),
+    ( 5, 1, 20, NULL, "Amazing"),
+    ( 6, 1, 20, NULL, "Good Work"),
+    ( 7, 1, 5, NULL, "Try harder"),
+    ( 8, 1, 50, NULL, "You used the wrong there"),
+	
+	( 9,  2, 15, NULL, "Better luck next time"),
+    ( 10, 2, 19, NULL, "Amazing"),
+    ( 11, 2, 15, NULL, "Better"),
+    ( 12, 2, 0, NULL, "Good Cheating"),
+    ( 13, 2, 9, NULL, "Amazing"),
+	
+    ( 4, 2, 6, NULL, "mediocre"),
+    ( 5, 2, 14, NULL, "ok..."),
+    ( 6, 2, 20, NULL, "Good Work"),
+    ( 7, 2, 5, NULL, "Try harder"),
+    ( 8, 2, 50, NULL, "Amazing Work"),
+	
+	( 19, 2, 2, NULL, "good job"),
+    ( 20, 2, 0, NULL, "ok..."),
+    ( 21, 2, 7, NULL, "I'd give you two A's if I could"),
+    ( 22, 2, 5, NULL, "This is the best work you've done yet!"),
+    ( 23, 2, 6, NULL, "Amazing Work, thanks for being awesome"),
+	
+	( 19, 3, 20, NULL, "ok job"),
+    ( 20, 3, 20, NULL, "I've seen worse"),
+    ( 21, 3, 50, NULL, "I'd give you two F's if I could"),
+    ( 22, 3, 50, NULL, "Apple?"),
+    ( 23, 3, 100, NULL, "wowza nice job"),
+	
+	( 9,  3, 2, NULL, "mediocre"),
+    ( 10, 3, 2, NULL, "mediocre"),
+    ( 11, 3, 2, NULL, "mediocre"),
+    ( 12, 3, 2, NULL, "mediocre"),
+    ( 13, 3, 2, NULL, "mediocre"),
+	
+	( 14, 4, 20, NULL, "Very good"),
+    ( 15, 4, 20, NULL, "Very good"),
+    ( 16, 4, 50, NULL, "Very good"),
+    ( 17, 4, 50, NULL, "Very good"),
+    ( 18, 4, 100, NULL, "Very good"),
+	
+	( 19, 5, 20, NULL, "lorem ipsum?"),
+    ( 20, 5, 20, NULL, "I've seen better"),
+    ( 21, 5, 50, NULL, "The quick brown fox jumps over a lazy dog, and what a lazy dog this dog is."),
+    ( 22, 5, 46, NULL, "tomato?"),
+    ( 23, 5, 90, NULL, "You cant just say perchance"),
+	
+	( 9,  5, 15, NULL, "Better luck next time"),
+    ( 10, 5, 20, NULL, "Cheated"),
+    ( 11, 5, 15, NULL, "Amazing"),
+    ( 12, 5, 50, NULL, "Good Work"),
+    ( 13, 5, 10, NULL, "mediocre"),
+	
+    ( 4, 5, 0, NULL, "Absent"),
+    ( 5, 5, 0, NULL, "You never showed up"),
+    ( 6, 5, 0, NULL, "Hello?"),
+    ( 7, 5, 0, NULL, "Where are you?"),
+    ( 8, 5, 0, NULL, "I'm not even sure you still go to this school.")
+	
   `);
   
   db.run(`INSERT INTO StudentSections(studentID, sectionID) VALUES
