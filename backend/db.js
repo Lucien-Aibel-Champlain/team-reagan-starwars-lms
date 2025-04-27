@@ -37,6 +37,12 @@ db.serialize(() => {
     FOREIGN KEY (roleID) REFERENCES Roles(roleID)
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS Types (
+    typeID INTEGER PRIMARY KEY AUTOINCREMENT,
+    typeName TEXT,
+    typeDescription TEXT
+  )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS Materials (
     materialID INTEGER PRIMARY KEY AUTOINCREMENT,
     materialName TEXT,
@@ -46,14 +52,6 @@ db.serialize(() => {
     fileName TEXT,
     materialFile BLOB,
     FOREIGN KEY (typeID) REFERENCES Types(typeID)
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS Types (
-    typeID INTEGER PRIMARY KEY AUTOINCREMENT,
-    sectionID INTEGER,
-    typeName TEXT,
-    typeDescription TEXT,
-    FOREIGN KEY (sectionID) REFERENCES Sections(sectionID)
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS Grades (
@@ -182,11 +180,11 @@ db.serialize(() => {
     (1,"17:00:00", "19:00:00", "TF", "2025-01-01", "2025-05-01", 5, 2, 4)
   `);
   
-  db.run(`INSERT INTO Types(typeName, sectionID, typeDescription) VALUES
-    ("Quizzes", 1, "a short, informal test"),
-    ("Projects", 1, "must inflict some level of suffering"),
-    ("Final Exam", 2, "Well, this is the part where he kills us."),
-    ("Contest", 3, "a test of valor with a binary winner between students")
+  db.run(`INSERT INTO Types(typeName, typeDescription) VALUES
+    ("Quizzes", "a short, informal test"),
+    ("Projects", "must inflict some level of suffering"),
+    ("Final Exam", "Well, this is the part where he kills us."),
+    ("Contest", "a test of valor with a binary winner between students")
   `);
   
   db.run(`INSERT INTO Materials(materialName, typeID, materialDescription, maxPoints, fileName, materialFile) VALUES
