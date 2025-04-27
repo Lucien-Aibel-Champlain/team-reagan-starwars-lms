@@ -4,7 +4,7 @@ import Form from './Form';
 export default function Dashboard({ user }) {
   //variables for storing all table data
   //useState means that React will automatically rerender parts of the page they're used in when they update, as long as they're updated with the function returned as the second paramter of useState
-  const [sections, setSections] = useState([]);
+  const [sections, setSections] = useState([]); // Tracks the sections data
   const [majors, setMajors] = useState([]);
   const [studentMajors, setStudentMajors] = useState({});
   const [rooms, setRooms] = useState([]);
@@ -19,6 +19,7 @@ export default function Dashboard({ user }) {
     roleName: '',
     adminBool: 0, // 0 for no, 1 for yes
   });
+  const [courses, setCourses] = useState([]); // Tracks the courses data
 
   
   //vars for which column is currently selected
@@ -35,12 +36,18 @@ export default function Dashboard({ user }) {
 
   //fetch general data (doesn't vary based on which section/material is selected)
   const fetchData = () => {
+    fetch('http://localhost:5000/sections')
+      .then((res) => res.json())
+      .then(setSections);
     fetch('http://localhost:5000/majors')
       .then(res => res.json()) 
       .then(setMajors);
     fetch('http://localhost:5000/rooms')
       .then(res => res.json())
       .then(setRooms);
+    fetch('http://localhost:5000/courses') // Fetch courses data
+      .then(res => res.json())
+      .then(setCourses);
     if (user.adminBool) {
         fetch('http://localhost:5000/sections')
           .then(res => res.json())
@@ -283,35 +290,27 @@ export default function Dashboard({ user }) {
     setNewRoomRow({ buildingName: row.buildingName, roomNumber: row.roomNumber, roomID: row.roomID }); // Include roomID
   };
 
-  const [editCourseRow, setEditCourseRow] = useState(null);
+  const [editCourseRow, setEditCourseRow] = useState(null); // Tracks the row being edited
   const [newCourseRow, setNewCourseRow] = useState({
     coursePrefix: '',
     courseNumber: '',
     courseName: '',
-    schedule: '',
-    dates: '',
-    room: '',
-    instructor: '',
-  });
+  }); // Tracks the new row data
 
   // Handle Edit
   const handleCourseEdit = (row) => {
-    setEditCourseRow(row);
+    setEditCourseRow(row); // Set the row being edited
     setNewCourseRow({
       coursePrefix: row.coursePrefix,
       courseNumber: row.courseNumber,
       courseName: row.courseName,
-      schedule: row.schedule,
-      dates: row.dates,
-      room: row.room,
-      instructor: row.instructor,
-    });
+    }); // Populate input fields with existing data
   };
 
   // Handle Delete
   const handleCourseDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this course?')) {
-      fetch(`http://localhost:5000/courselist/${id}`, { method: 'DELETE' })
+      fetch(`http://localhost:5000/courses/${id}`, { method: 'DELETE' })
         .then((res) => res.json())
         .then(() => fetchData());
     }
@@ -322,15 +321,12 @@ export default function Dashboard({ user }) {
     if (window.confirm('Are you sure you want to submit this course?')) {
       const method = editCourseRow ? 'PUT' : 'POST';
       const url = editCourseRow
-        ? `http://localhost:5000/courselist/${editCourseRow.sectionID}`
-        : 'http://localhost:5000/courselist';
-
-      // Combine coursePrefix and sectionNumber
-      const combinedCourseCode = `${newCourseRow.coursePrefix}-${newCourseRow.sectionNumber}`;
+        ? `http://localhost:5000/courses/${editCourseRow.courseID}`
+        : 'http://localhost:5000/courses';
 
       const payload = editCourseRow
-        ? { ...newCourseRow, sectionID: editCourseRow.sectionID, courseCode: combinedCourseCode }
-        : { ...newCourseRow, courseCode: combinedCourseCode };
+        ? { ...newCourseRow, courseID: editCourseRow.courseID }
+        : newCourseRow;
 
       fetch(url, {
         method,
@@ -342,12 +338,8 @@ export default function Dashboard({ user }) {
           setEditCourseRow(null);
           setNewCourseRow({
             coursePrefix: '',
-            sectionNumber: '',
+            courseNumber: '',
             courseName: '',
-            schedule: '',
-            dates: '',
-            room: '',
-            instructor: '',
           });
           fetchData();
         });
@@ -702,6 +694,61 @@ const handleRoleSubmit = () => {
   }
 };
 
+const [editSectionRow, setEditSectionRow] = useState(null); // Tracks the row being edited
+const [newSectionRow, setNewSectionRow] = useState({
+  courseCode: '',
+  instructorName: '',
+  roomName: '',
+  schedule: '',
+}); // Tracks the new row data
+
+const handleSectionEdit = (row) => {
+  setEditSectionRow(row); // Set the row being edited
+  setNewSectionRow({
+    courseCode: row.courseCode,
+    instructorName: row.instructorName,
+    roomName: row.roomName,
+    schedule: row.schedule,
+  }); // Populate input fields with existing data
+};
+
+const handleSectionDelete = (id) => {
+  if (window.confirm('Are you sure you want to delete this section?')) {
+    fetch(`http://localhost:5000/sections/${id}`, { method: 'DELETE' })
+      .then((res) => res.json())
+      .then(() => fetchData()); // Refresh the table
+  }
+};
+
+const handleSectionSubmit = () => {
+  if (window.confirm('Are you sure you want to submit this section?')) {
+    const method = editSectionRow ? 'PUT' : 'POST';
+    const url = editSectionRow
+      ? `http://localhost:5000/sections/${editSectionRow.sectionID}`
+      : 'http://localhost:5000/sections';
+
+    const payload = editSectionRow
+      ? { ...newSectionRow, sectionID: editSectionRow.sectionID }
+      : newSectionRow;
+
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setEditSectionRow(null); // Clear edit state
+        setNewSectionRow({
+          courseCode: '',
+          instructorName: '',
+          roomName: '',
+          schedule: '',
+        }); // Clear input fields
+        fetchData(); // Refresh the table
+      });
+  }
+};
 
   return (
     <div>
@@ -1345,6 +1392,140 @@ const handleRoleSubmit = () => {
             </td>
           </tr>
           )) || ""}
+        </tbody>
+      </table>
+
+      <h2>Courses</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Course Prefix</th>
+            <th>Course Number</th>
+            <th>Course Name</th>
+            {(user.adminBool && <th>Actions</th>) || ''}
+          </tr>
+        </thead>
+        <tbody>
+          {courses.map((course) => (
+            <tr key={course.courseID}>
+              <td>{course.coursePrefix}</td>
+              <td>{course.courseNumber}</td>
+              <td>{course.courseName}</td>
+              {(user.adminBool && (
+                <td>
+                  <button onClick={() => handleCourseEdit(course)}>Edit</button>
+                  <button onClick={() => handleCourseDelete(course.courseID)}>Delete</button>
+                </td>
+              )) || ''}
+            </tr>
+          ))}
+          {/* Insert/Edit Row */}
+          {(user.adminBool && (
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  value={newCourseRow.coursePrefix}
+                  onChange={(e) => setNewCourseRow({ ...newCourseRow, coursePrefix: e.target.value })}
+                  placeholder="Course Prefix"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  value={newCourseRow.courseNumber}
+                  onChange={(e) => setNewCourseRow({ ...newCourseRow, courseNumber: e.target.value })}
+                  placeholder="Course Number"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  value={newCourseRow.courseName}
+                  onChange={(e) => setNewCourseRow({ ...newCourseRow, courseName: e.target.value })}
+                  placeholder="Course Name"
+                />
+              </td>
+              <td>
+                <button onClick={handleCourseSubmit}>
+                  {editCourseRow ? 'Update' : 'Add'}
+                </button>
+              </td>
+            </tr>
+          )) || ''}
+        </tbody>
+      </table>
+
+      <h2>Sections</h2>
+      <table border="1" cellPadding="6" style={{ marginBottom: '2em' }}>
+        <thead>
+          <tr>
+            <th>Section ID</th>
+            <th>Course Code</th>
+            <th>Instructor</th>
+            <th>Room</th>
+            <th>Schedule</th>
+            {(user.adminBool && <th>Actions</th>) || ''}
+          </tr>
+        </thead>
+        <tbody>
+          {sections.map((section) => (
+            <tr key={section.sectionID}>
+              <td>{section.sectionID}</td>
+              <td>{section.courseCode}</td>
+              <td>{section.instructorName}</td>
+              <td>{section.roomName}</td>
+              <td>{`${section.startTime} - ${section.endTime} (${section.weekDays})`}</td>
+              {(user.adminBool && (
+                <td>
+                  <button onClick={() => handleSectionEdit(section)}>Edit</button>
+                  <button onClick={() => handleSectionDelete(section.sectionID)}>Delete</button>
+                </td>
+              )) || ''}
+            </tr>
+          ))}
+          {/* Insert/Edit Row */}
+          {(user.adminBool && (
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  value={newSectionRow.courseCode}
+                  onChange={(e) => setNewSectionRow({ ...newSectionRow, courseCode: e.target.value })}
+                  placeholder="Course Code"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  value={newSectionRow.instructorName}
+                  onChange={(e) => setNewSectionRow({ ...newSectionRow, instructorName: e.target.value })}
+                  placeholder="Instructor Name"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  value={newSectionRow.roomName}
+                  onChange={(e) => setNewSectionRow({ ...newSectionRow, roomName: e.target.value })}
+                  placeholder="Room Name"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  value={newSectionRow.schedule}
+                  onChange={(e) => setNewSectionRow({ ...newSectionRow, schedule: e.target.value })}
+                  placeholder="Schedule"
+                />
+              </td>
+              <td>
+                <button onClick={handleSectionSubmit}>
+                  {editSectionRow ? 'Update' : 'Add'}
+                </button>
+              </td>
+            </tr>
+          )) || ''}
         </tbody>
       </table>
     </div>
