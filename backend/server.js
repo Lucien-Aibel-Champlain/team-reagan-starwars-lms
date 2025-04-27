@@ -198,7 +198,7 @@ app.post('/courselist', (req, res) => {
 
 // Create a new material
 app.post('/materials', (req, res) => {
-  const { materialName, materialDescription, typeID, maxPoints, fileName } = req.body;
+  const { materialName, materialDescription, typeID, maxPoints, fileName, sectionID } = req.body;
   db.run(
     `INSERT INTO Materials (materialName, materialDescription, typeID, maxPoints, fileName) 
      VALUES (?, ?, ?, ?, ?)`,
@@ -207,6 +207,7 @@ app.post('/materials', (req, res) => {
       if (err) {
         res.status(500).json({ error: 'Database error' });
       } else {
+        db.run(`INSERT INTO MaterialSections (materialID, sectionID) VALUES (?, ?)`, [this.lastID, sectionID], (req, res) => {});
         res.json({ id: this.lastID });
       }
     }
@@ -252,6 +253,27 @@ app.put('/materials/:id', (req, res) => {
   );
 });
 
+app.delete('/materials/section', (req, res) => {
+  const { materialID, sectionID } = req.body;
+  db.all(`SELECT * FROM MaterialSections WHERE materialID = ?`, [materialID], (err, rows) => {
+      if (rows.length < 2) {
+        res.status(400).json({error: "Last reference to this material cannot be removed; delete material instead."});
+      }
+      else {
+          db.run(
+            `DELETE FROM MaterialSections WHERE materialID = ? AND sectionID = ?`, [materialID, sectionID], function (err) {
+                if (err) {
+                  res.status(500).json({ error: 'Database error' });
+                } else if (this.changes === 0) {
+                  res.status(404).json({ error: 'Material not found for deletion' });
+                } else {
+                  res.json({ changes: this.changes });
+                }
+            })
+        }
+    })
+});
+
 // Delete a material
 app.delete('/materials/:id', (req, res) => {
   const materialID = req.params.id;
@@ -265,6 +287,20 @@ app.delete('/materials/:id', (req, res) => {
       res.json({ changes: this.changes });
     }
   })
+});
+
+app.post('/materials/section', (req, res) => {
+  const { materialID, sectionID } = req.body;
+  db.run(
+    `INSERT INTO MaterialSections(materialID, sectionID)
+    VALUES (?, ?)`, [materialID, sectionID], function(err) {
+      if (err) {
+        res.status(500).json({ error: 'Database error' });
+      } else {
+        res.json({ id: this.lastID });
+      }
+    }
+  );
 });
 
 // CRUD Operations for Types
@@ -431,6 +467,7 @@ app.post('/students', (req, res) => {
     [firstName, lastName, email, graduationYear],
     function (err) {
       if (err) {
+        console.log(err)
         res.status(500).json({ error: 'Database error' });
       } else {
         const studentID = this.lastID;
@@ -879,7 +916,7 @@ app.get('/students/section/:id', (req, res) => {
 app.get('/students/majors/:id', (req, res) => {
   if (!isNaN(parseInt(req.params.id)))
   {
-    db.all('SELECT majorName FROM Students LEFT JOIN StudentMajors ON Students.studentID = StudentMajors.studentID LEFT JOIN Majors ON StudentMajors.majorID = Majors.majorID WHERE Students.studentID = ' + req.params.id, [], (err, rows) => res.json(rows));
+    db.all('SELECT majorName, StudentMajors.majorID FROM Students LEFT JOIN StudentMajors ON Students.studentID = StudentMajors.studentID LEFT JOIN Majors ON StudentMajors.majorID = Majors.majorID WHERE Students.studentID = ' + req.params.id, [], (err, rows) => res.json(rows));
   }
 });
 
