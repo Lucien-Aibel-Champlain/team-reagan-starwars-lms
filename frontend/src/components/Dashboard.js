@@ -52,6 +52,9 @@ export default function Dashboard({ user }) {
     fetch('http://localhost:5000/roles')
       .then(res => res.json())
       .then(setRoles);
+	  fetch('http://localhost:5000/types')
+      .then(res => res.json())
+      .then(setTypes);
     fetch('http://localhost:5000/students')
       .then(res => res.json())
       .then(setStudents);
@@ -65,9 +68,6 @@ export default function Dashboard({ user }) {
       fetch('http://localhost:5000/materials/section/' + selectedSection)
         .then(res => res.json())
         .then(setMaterials);
-      fetch('http://localhost:5000/types/section/' + selectedSection)
-        .then(res => res.json())
-        .then(setTypes);
     }
   };
   
