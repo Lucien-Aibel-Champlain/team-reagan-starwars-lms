@@ -14,6 +14,12 @@ export default function Dashboard({ user }) {
   const [types, setTypes] = useState([]);
   const [grades, setGrades] = useState([]);
   const [students, setStudents] = useState([]);
+  const [editRoleRow, setEditRoleRow] = useState(null); // Tracks the row being edited for Roles
+  const [newRoleRow, setNewRoleRow] = useState({
+    roleName: '',
+    adminBool: 0, // 0 for no, 1 for yes
+  });
+
   
   //vars for which column is currently selected
   const [selectedMaterial, setSelectedMaterial] = useState(0);
@@ -582,6 +588,118 @@ export default function Dashboard({ user }) {
     }
   };
 
+  // Add state variables for editing and adding employees
+  const [editEmployeeRow, setEditEmployeeRow] = useState(null); // Tracks the row being edited for Employees
+  const [newEmployeeRow, setNewEmployeeRow] = useState({
+    firstName: '',
+    lastName: '',
+    roleID: '',
+    email: '',
+    password: '',
+  }); // Tracks the new row data for Employees
+
+  // Handle delete for Employees
+  const handleEmployeeDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this employee?')) {
+      fetch(`http://localhost:5000/employees/${id}`, { method: 'DELETE' })
+        .then((res) => res.json())
+        .then(() => fetchData()); // Refresh the table
+    }
+  };
+
+  // Handle submit (insert or update) for Employees
+  const handleEmployeeSubmit = () => {
+    if (window.confirm('Are you sure you want to submit this employee?')) {
+      const method = editEmployeeRow ? 'PUT' : 'POST';
+      const url = editEmployeeRow
+        ? `http://localhost:5000/employees/${editEmployeeRow.employeeID}`
+        : 'http://localhost:5000/employees';
+
+      const payload = editEmployeeRow
+        ? { ...newEmployeeRow, employeeID: editEmployeeRow.employeeID } // Include employeeID for updates
+        : newEmployeeRow;
+
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          setEditEmployeeRow(null); // Clear edit state
+          setNewEmployeeRow({
+            firstName: '',
+            lastName: '',
+            roleID: '',
+            email: '',
+            password: '',
+          }); // Clear input fields
+          fetchData(); // Refresh the table
+        })
+        .catch((err) => console.error('Error:', err));
+    }
+  };
+
+  // Handle edit for Employees
+  const handleEmployeeEdit = (row) => {
+    setEditEmployeeRow(row); // Set the row being edited
+    setNewEmployeeRow({
+      firstName: row.firstName,
+      lastName: row.lastName,
+      roleID: row.roleID,
+      email: row.email,
+      password: row.password,
+    }); // Populate input fields with existing data
+  };
+
+  // Handle Edit for Roles
+const handleRoleEdit = (row) => {
+  setEditRoleRow(row);
+  setNewRoleRow({
+    roleName: row.roleName,
+    adminBool: row.adminBool,
+  });
+};
+
+// Handle Delete for Roles
+const handleRoleDelete = (id) => {
+  if (window.confirm('Are you sure you want to delete this role?')) {
+    fetch(`http://localhost:5000/roles/${id}`, { method: 'DELETE' })
+      .then((res) => res.json())
+      .then(() => fetchData()); // Refresh the table
+  }
+};
+
+// Handle Submit (Insert or Update) for Roles
+const handleRoleSubmit = () => {
+  if (window.confirm('Are you sure you want to submit this role?')) {
+    const method = editRoleRow ? 'PUT' : 'POST';
+    const url = editRoleRow
+      ? `http://localhost:5000/roles/${editRoleRow.roleID}`
+      : 'http://localhost:5000/roles';
+
+    const payload = editRoleRow
+      ? { ...newRoleRow, roleID: editRoleRow.roleID }
+      : newRoleRow;
+
+    fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setEditRoleRow(null); // Clear edit state
+        setNewRoleRow({
+          roleName: '',
+          adminBool: 0,
+        }); // Clear inputs
+        fetchData(); // Refresh
+      });
+  }
+};
+
+
   return (
     <div>
       {/* Display the name and role */}
@@ -699,18 +817,80 @@ export default function Dashboard({ user }) {
             <th>Role</th>
             <th>Email</th>
             <th>Password</th>
+            {(user.adminBool && <th>Actions</th>) || ''}
           </tr>
         </thead>
         <tbody>
-          {employees.map(emp => (
+          {employees.map((emp) => (
             <tr key={emp.employeeID}>
               <td>{emp.firstName}</td>
               <td>{emp.lastName}</td>
               <td>{emp.roleName}</td>
-              <td><a href={"mailto:" + emp.email}>{emp.email}</a></td>
+              <td><a href={`mailto:${emp.email}`}>{emp.email}</a></td>
               <td>{emp.password}</td>
+              {(user.adminBool && (
+                <td>
+                  <button onClick={() => handleEmployeeEdit(emp)}>Edit</button>
+                  <button onClick={() => handleEmployeeDelete(emp.employeeID)}>Delete</button>
+                </td>
+              )) || ''}
             </tr>
           ))}
+          {/* Insert/Edit Row */}
+          {(user.adminBool && (
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  value={newEmployeeRow.firstName}
+                  onChange={(e) => setNewEmployeeRow({ ...newEmployeeRow, firstName: e.target.value })}
+                  placeholder="First Name"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  value={newEmployeeRow.lastName}
+                  onChange={(e) => setNewEmployeeRow({ ...newEmployeeRow, lastName: e.target.value })}
+                  placeholder="Last Name"
+                />
+              </td>
+              <td>
+                <select
+                  value={newEmployeeRow.roleID}
+                  onChange={(e) => setNewEmployeeRow({ ...newEmployeeRow, roleID: e.target.value })}
+                >
+                  <option value="">Select Role</option>
+                  {roles.map((role) => (
+                    <option key={role.roleID} value={role.roleID}>
+                      {role.roleName}
+                    </option>
+                  ))}
+                </select>
+              </td>
+              <td>
+                <input
+                  type="email"
+                  value={newEmployeeRow.email}
+                  onChange={(e) => setNewEmployeeRow({ ...newEmployeeRow, email: e.target.value })}
+                  placeholder="Email"
+                />
+              </td>
+              <td>
+                <input
+                  type="password"
+                  value={newEmployeeRow.password}
+                  onChange={(e) => setNewEmployeeRow({ ...newEmployeeRow, password: e.target.value })}
+                  placeholder="Password"
+                />
+              </td>
+              <td>
+                <button onClick={handleEmployeeSubmit}>
+                  {editEmployeeRow ? 'Update' : 'Add'}
+                </button>
+              </td>
+            </tr>
+          )) || ''}
         </tbody>
       </table>
       
@@ -720,15 +900,49 @@ export default function Dashboard({ user }) {
           <tr>
             <th>Name</th>
             <th>Admin</th>
+            {(user.adminBool && <th>Actions</th>) || ''}
           </tr>
         </thead>
         <tbody>
-          {roles.map(role => (
+          {roles.map((role) => (
             <tr key={role.roleID}>
               <td>{role.roleName}</td>
               <td>{["No", "Yes"][role.adminBool]}</td>
+              {(user.adminBool && (
+                <td>
+                  <button onClick={() => handleRoleEdit(role)}>Edit</button>
+                  <button onClick={() => handleRoleDelete(role.roleID)}>Delete</button>
+                </td>
+              )) || ''}
             </tr>
           ))}
+          {/* Insert/Edit Row */}
+          {(user.adminBool && (
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  value={newRoleRow.roleName}
+                  onChange={(e) => setNewRoleRow({ ...newRoleRow, roleName: e.target.value })}
+                  placeholder="Role Name"
+                />
+              </td>
+              <td>
+                <select
+                  value={newRoleRow.adminBool}
+                  onChange={(e) => setNewRoleRow({ ...newRoleRow, adminBool: parseInt(e.target.value) })}
+                >
+                  <option value={0}>No</option>
+                  <option value={1}>Yes</option>
+                </select>
+              </td>
+              <td>
+                <button onClick={handleRoleSubmit}>
+                  {editRoleRow ? 'Update' : 'Add'}
+                </button>
+              </td>
+            </tr>
+          )) || ''}
         </tbody>
       </table>
       </div>
