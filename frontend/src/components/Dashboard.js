@@ -722,6 +722,7 @@ const [newSectionRow, setNewSectionRow] = useState({
   courseID: 0,
   employeeID: 0,
   roomID: 0,
+  sectionNumber: "",
   startTime: "",
   endTime: "",
   weekDays: "",
@@ -732,6 +733,7 @@ const [newSectionRow, setNewSectionRow] = useState({
 const handleSectionEdit = (row) => {
   setEditSectionRow(row); // Set the row being edited
   setNewSectionRow({
+      sectionNumber: row.sectionNumber,
       courseID: row.courseID,
       employeeID: row.sectionID,
       roomID: row.roomID,
@@ -803,6 +805,7 @@ const handleSectionSubmit = () => {
           courseID: 0,
           employeeID: 0,
           roomID: 0,
+          sectionNumber: "",
           startTime: "",
           endTime: "",
           weekDays: "",
@@ -1188,7 +1191,7 @@ const handleSectionSubmit = () => {
     <td>
     <select
       value={newSectionRow.courseID}
-      onChange={(e) => setNewSectionRow({ ...newSectionRow, courseID: e.target.value })}
+      onChange={(e) => setNewSectionRow({ ...newSectionRow, courseID: e.target.value, sectionNumber: "" })}
     >
       <option value="">Select Course</option>
       {courses.map((course) => (
@@ -1198,6 +1201,13 @@ const handleSectionSubmit = () => {
 
       ))}
       </select>
+
+      <input
+        type="text"
+        value={newSectionRow.sectionNumber}
+        onChange={(e) => setNewSectionRow({ ...newSectionRow, sectionNumber: e.target.value })}
+        placeholder="Section Number"
+      />
     </td>
     <td>
     {

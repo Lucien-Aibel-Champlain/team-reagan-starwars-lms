@@ -467,7 +467,6 @@ app.post('/students', (req, res) => {
     [firstName, lastName, email, graduationYear],
     function (err) {
       if (err) {
-        console.log(err)
         res.status(500).json({ error: 'Database error' });
       } else {
         const studentID = this.lastID;
@@ -790,28 +789,49 @@ app.post('/sections', (req, res) => {
 
 // Update an existing section
 app.put('/sections/:id', (req, res) => {
-  const { courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays } = req.body;
-  const sectionID = req.params.id;
+  const finalOutput = (sectionNumber, courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays, sectionID) => {
+      db.run(
+        `UPDATE Sections 
+         SET sectionNumber = ?, courseID = ?, employeeID = ?, endDate = ?, endTime = ?, roomID = ?, startDate = ?, startTime = ?, weekDays = ? 
+         WHERE sectionID = ?`,
+        [sectionNumber, courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays, sectionID],
+        function (err) {
+          if (err) {
+            res.status(500).json({ error: 'Database error' });
+          } else if (this.changes === 0) {
+            res.status(404).json({ error: 'Section not found' });
+          } else {
+            res.json({ changes: this.changes });
+          }
 
-  if (!courseID || !employeeID || !endDate || !endTime || !roomID || !sectionID || !startDate || !startTime || !weekDays) {
-    return res.status(400).json({ error: 'Missing required fields' });
+        }
+      );
   }
 
-  db.run(
-    `UPDATE Sections 
-     SET courseID = ?, employeeID = ?, endDate = ?, endTime = ?, roomID = ?, startDate = ?, startTime = ?, weekDays = ? 
-     WHERE sectionID = ?`,
-    [courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays, sectionID],
-    function (err) {
-      if (err) {
-        res.status(500).json({ error: 'Database error' });
-      } else if (this.changes === 0) {
-        res.status(404).json({ error: 'Section not found' });
-      } else {
-        res.json({ changes: this.changes });
+  let { sectionNumber, courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays } = req.body;
+  const sectionID = req.params.id;
+  db.all('SELECT sectionNumber FROM Sections WHERE sectionID = ?', [sectionID], (err, rows) => {
+      if (sectionNumber == "") {
+        sectionNumber = rows[0].sectionNumber
       }
-    }
-  );
+
+      if (!courseID || !employeeID || !endDate || !endTime || !roomID || !sectionID || !startDate || !startTime || !weekDays) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      db.all('SELECT sectionNumber FROM Sections WHERE courseID = ? AND sectionNumber = ? AND sectionID != ?', [courseID, sectionNumber, sectionID], (err, rows) => { 
+          if (rows.length > 0)
+          {
+            db.all('SELECT sectionNumber FROM Sections WHERE courseID = ? ORDER BY sectionNumber DESC LIMIT 1', [courseID], (err, rows) => { 
+            sectionNumber = rows[0].sectionNumber + 1
+            finalOutput(sectionNumber, courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays, sectionID)
+            })
+          }
+          else {
+            finalOutput(sectionNumber, courseID, employeeID, endDate, endTime, roomID, startDate, startTime, weekDays, sectionID)
+          }
+      });
+  });
 });
 
 // Delete a section
