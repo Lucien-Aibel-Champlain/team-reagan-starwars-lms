@@ -17,7 +17,6 @@ export default function Login({ onLogin }) {
 
     if (res.ok) {
       const data = await res.json();
-      console.log('Name:', data.name, 'Role:', data.role); // Log the retrieved name and role
 
       // Continue with the login process
       const loginRes = await fetch('http://localhost:5000/login', {
